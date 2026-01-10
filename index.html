@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家庭生活規画 | Life Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <h1 class="logo">
+          <span class="logo-icon">📊</span>
+          家庭生活規画
+        </h1>
+        <p class="tagline">50年先までの資産シミュレーション</p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="container">
+        <!-- Tabs -->
+        <nav class="tabs">
+          <button class="tab active" data-tab="setup">基本設定</button>
+          <button class="tab" data-tab="events">ライフイベント</button>
+          <button class="tab" data-tab="charts">シミュレーション結果</button>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Setup Form -->
+          <section id="setup" class="tab-panel active">
+            <div id="setup-form"></div>
+          </section>
+
+          <!-- Events Form -->
+          <section id="events" class="tab-panel">
+            <div id="events-form"></div>
+          </section>
+
+          <!-- Charts -->
+          <section id="charts" class="tab-panel">
+            <div id="charts-container"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>© 2025 家庭生活規画 | データはブラウザに保存されます</p>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
