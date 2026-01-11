@@ -38,10 +38,13 @@ function saveState() {
     }
 }
 
-// Initialize Application in Chat Mode first
-function init() {
-    loadState();
+import { createProfileSelector } from './components/ProfileSelector.js';
 
+// ... (Imports remain)
+
+// Initialize Application
+function init() {
+    const saved = localStorage.getItem('life-planner-state');
     const mainContent = document.querySelector('.main .container');
     mainContent.innerHTML = '';
 
@@ -57,27 +60,46 @@ function init() {
     layout.appendChild(chatPanel);
     mainContent.appendChild(layout);
 
-    // Initialize Chat
+    if (saved) {
+        // Resume existing session
+        loadState();
+        initChat(chatPanel);
+    } else {
+        // New User -> Show Profile Selector
+        // Temporarily hide chat panel or just use main container?
+        // Let's replace main content with Selector first.
+        mainContent.innerHTML = '';
+        mainContent.appendChild(createProfileSelector((profileId) => {
+            // On Profile Select
+            // Clear Selector
+            mainContent.innerHTML = '';
+            // Restore Layout
+            mainContent.appendChild(layout);
+            // Init Chat with Profile ID
+            initChat(chatPanel, profileId);
+        }));
+    }
+
+    // Add Reset Button Logic
+    initResetButton();
+}
+
+function initChat(container, preSelectedProfileId = null) {
     const chatUI = createChatInterface(
-        // Update Setup callback
         (key, value) => {
             if (key === '__APPLY_PROFILE_EVENTS__') {
-                // Special case for bulk event update from Profile Matching
-                state.events = [...value]; // Replace default events with Profile events
+                state.events = [...value];
             } else {
                 state.setup[key] = value;
             }
             saveState();
         },
-        // On Complete callback - Show "View Results" button
         () => {
-            showViewResultsButton(chatPanel);
-        }
+            showViewResultsButton(container);
+        },
+        preSelectedProfileId // Pass profile ID
     );
-    chatPanel.appendChild(chatUI);
-
-    // Add Reset Button Logic
-    initResetButton();
+    container.appendChild(chatUI);
 }
 
 // Show "View Results" button after chat completion

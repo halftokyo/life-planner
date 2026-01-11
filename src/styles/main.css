@@ -843,6 +843,142 @@ input {
   }
 }
 
+
+/* ========================================
+   Profile Selector (New)
+   ======================================== */
+.profile-selector-container {
+  max-width: 900px;
+  /* Wider for 3 cards */
+  margin: 40px auto;
+  text-align: center;
+}
+
+.profile-selector-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.profile-selector-header p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.profile-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 0 10px;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+  /* Prepare for hover border */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Card Accents */
+.profile-card-accent-a {
+  border-top: 5px solid #8b5cf6;
+}
+
+/* Purple */
+.profile-card-accent-b {
+  border-top: 5px solid #f97316;
+}
+
+/* Orange */
+.profile-card-accent-c {
+  border-top: 5px solid #10b981;
+}
+
+/* Green */
+
+.profile-card-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  background: #f3f4f6;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.profile-card-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.profile-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  text-align: left;
+  width: 100%;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.profile-card-features li {
+  margin-bottom: 6px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.profile-card-features li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  color: #6b7280;
+}
+
+.btn-select {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-select:hover {
+  background: #4f46e5;
+}
+
 /* ========================================
    Shared UI Elements
    ======================================== */
