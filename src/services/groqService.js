@@ -41,55 +41,57 @@ export async function sendMessage(messages) {
         const model = MODELS[(currentModelIndex + i) % MODELS.length];
 
         try {
-            const response = await fetch(GROQ_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${GROQ_API_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { role: 'system', content: SYSTEM_PROMPT },
-                        ...messages
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 1024,
-                }),
-            });
+            try {
+                // Call local proxy instead of direct Groq API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Authorization is handled by the server-side proxy
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            ...messages
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1024,
+                    }),
+                });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.warn(`Model ${model} failed:`, errorData);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.warn(`Model ${model} failed:`, errorData);
 
-                // Check if rate limited or model unavailable
-                if (response.status === 429 || response.status === 503) {
-                    currentModelIndex = (currentModelIndex + i + 1) % MODELS.length;
-                    continue; // Try next model
+                    // Check if rate limited or model unavailable
+                    if (response.status === 429 || response.status === 503) {
+                        currentModelIndex = (currentModelIndex + i + 1) % MODELS.length;
+                        continue; // Try next model
+                    }
+                    throw new Error(`API Error: ${response.status}`);
                 }
-                throw new Error(`API Error: ${response.status}`);
-            }
 
-            const data = await response.json();
-            return {
-                content: data.choices[0].message.content,
-                model: model,
-            };
-        } catch (error) {
-            console.error(`Error with model ${model}:`, error);
-            if (i === attempts - 1) {
-                throw error; // All models failed
+                const data = await response.json();
+                return {
+                    content: data.choices[0].message.content,
+                    model: model,
+                };
+            } catch (error) {
+                console.error(`Error with model ${model}:`, error);
+                if (i === attempts - 1) {
+                    throw error; // All models failed
+                }
             }
         }
-    }
 
     throw new Error('All models failed');
-}
+    }
 
-export function getCurrentModel() {
-    return MODELS[currentModelIndex];
-}
+    export function getCurrentModel() {
+        return MODELS[currentModelIndex];
+    }
 
-export function resetModelIndex() {
-    currentModelIndex = 0;
-}
+    export function resetModelIndex() {
+        currentModelIndex = 0;
+    }
