@@ -7,8 +7,14 @@ export function createChatInterface(updateSetupCallback, onCompleteCallback) {
     const container = document.createElement('div');
     container.className = 'chat-gpt-container';
 
-    // Header (Optional, if we want a title inside chat)
-    // For now, main header exists.
+    // Header (Unified Style)
+    const header = document.createElement('div');
+    header.className = 'app-header-shared'; // Use shared class
+    header.innerHTML = `
+        <h2 class="app-header-title">ライフプラン・シミュレーション</h2>
+        <div></div> <!-- Spacer for flex balance -->
+    `;
+    container.appendChild(header);
 
     // Chat History Area (Scrollable)
     const messagesWrapper = document.createElement('div');
