@@ -235,6 +235,33 @@ input {
   color: var(--text-primary);
 }
 
+/* Button Animations */
+@keyframes btn-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.btn-pulse {
+  animation: btn-pulse 2s infinite;
+}
+
+/* Modal */
+.modal {
+  padding: 40px 0;
+}
+
 /* Main */
 .main {
   padding: 40px 0;

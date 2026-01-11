@@ -40,15 +40,44 @@ function saveState() {
 
 import { createProfileSelector } from './components/ProfileSelector.js';
 
-// ... (Imports remain)
-
 // Initialize Application
 function init() {
-    const saved = localStorage.getItem('life-planner-state');
+    // Basic Layout Setup
     const mainContent = document.querySelector('.main .container');
-    mainContent.innerHTML = '';
+    mainContent.innerHTML = ''; // Start clean
 
-    // Creating Layout
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleRoute);
+
+    // Initial Route
+    handleRoute();
+
+    // Add Reset Button Logic
+    initResetButton();
+}
+
+function handleRoute() {
+    const hash = window.location.hash;
+    const mainContent = document.querySelector('.main .container');
+    const saved = localStorage.getItem('life-planner-state');
+
+    mainContent.innerHTML = ''; // Clear current view
+
+    if (hash === '#results') {
+        if (!saved) {
+            window.location.hash = ''; // Redirect if no data
+            return;
+        }
+        loadState();
+        const resultsPage = createResultsPage(state.setup, state.events, () => {
+            location.reload(); // Or hash=''
+        });
+        mainContent.appendChild(resultsPage);
+        window.scrollTo(0, 0);
+        return;
+    }
+
+    // Default / Chat View
     const layout = document.createElement('div');
     layout.className = 'app-layout';
     layout.id = 'app-layout';
@@ -61,27 +90,17 @@ function init() {
     mainContent.appendChild(layout);
 
     if (saved) {
-        // Resume existing session
         loadState();
         initChat(chatPanel);
     } else {
-        // New User -> Show Profile Selector
-        // Temporarily hide chat panel or just use main container?
-        // Let's replace main content with Selector first.
+        // Show Profile Selector for new users
         mainContent.innerHTML = '';
         mainContent.appendChild(createProfileSelector((profileId) => {
-            // On Profile Select
-            // Clear Selector
             mainContent.innerHTML = '';
-            // Restore Layout
             mainContent.appendChild(layout);
-            // Init Chat with Profile ID
             initChat(chatPanel, profileId);
         }));
     }
-
-    // Add Reset Button Logic
-    initResetButton();
 }
 
 function initChat(container, preSelectedProfileId = null) {
@@ -97,7 +116,7 @@ function initChat(container, preSelectedProfileId = null) {
         () => {
             showViewResultsButton(container);
         },
-        preSelectedProfileId // Pass profile ID
+        preSelectedProfileId
     );
     container.appendChild(chatUI);
 }
@@ -108,27 +127,15 @@ function showViewResultsButton(container) {
     buttonContainer.className = 'view-results-container fade-in';
     buttonContainer.innerHTML = `
         <p class="completion-message">✅ 情報収集が完了しました！</p>
-        <button class="btn-primary btn-large" id="view-results-btn">
+        <button class="btn-primary btn-large btn-pulse" id="view-results-btn">
             📊 シミュレーション結果を見る
         </button>
     `;
     container.appendChild(buttonContainer);
 
     document.getElementById('view-results-btn').addEventListener('click', () => {
-        showResultsPage();
+        window.location.hash = 'results';
     });
-}
-
-// Navigate to Results Page
-function showResultsPage() {
-    const mainContent = document.querySelector('.main .container');
-    mainContent.innerHTML = '';
-
-    const resultsPage = createResultsPage(state.setup, state.events, () => {
-        // On Back - return to chat/home
-        location.reload(); // Simple refresh for now
-    });
-    mainContent.appendChild(resultsPage);
 }
 
 function initDashboard(container) {

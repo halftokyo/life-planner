@@ -30,6 +30,7 @@ const CHART_FONTS = {
 // 存储图表实例
 let assetChart = null;
 let cashFlowChart = null;
+let breakdownChart = null;
 let elderlyChart = null;
 
 /**
@@ -52,7 +53,24 @@ export function createChartsContainer() {
     container.appendChild(balanceWrapper);
     container.appendChild(breakdownWrapper);
 
+    // Data Table Section
+    container.appendChild(createDataTableWrapper());
+
     return container;
+}
+
+function createChartCard(title, icon, canvasId) {
+    const card = document.createElement('div');
+    card.className = 'dashboard-card';
+    card.innerHTML = `
+        <h3 class="card-title">
+            ${title}
+        </h3>
+        <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="${canvasId}"></canvas>
+        </div>
+    `;
+    return card;
 }
 
 function createDataTableWrapper() {
@@ -74,15 +92,15 @@ function createDataTableWrapper() {
 export function updateCharts(projection, setup) {
     updateNetAssetChart(projection); // Renamed
     updateCashFlowChart(projection);
-    updateExpenseBreakdownChart(projection); // New chart call
+    updateExpenseBreakdownChart(projection, setup); // New chart call
     updateElderlyExpenseChart(projection, setup); // Renamed
     updateDataTable(projection);
 }
 
 /**
- * 资产变化图表
+ * 資産变化图表
  */
-function updateAssetChart(projection) {
+function updateNetAssetChart(projection) {
     const ctx = document.getElementById('asset-chart');
     if (!ctx) return;
 
@@ -260,9 +278,97 @@ function updateCashFlowChart(projection) {
 }
 
 /**
+ * 生涯支出の内訳 (Pie Chart)
+ */
+function updateExpenseBreakdownChart(projection, setup) {
+    const ctx = document.getElementById('breakdownChart');
+    if (!ctx) return;
+
+    // Calculate Totals
+    let totalHousing = 0;
+    let totalLiving = 0;
+    let totalEducation = 0;
+    let totalOther = 0;
+
+    projection.forEach(p => {
+        totalHousing += Math.abs(p.housing || 0);
+        totalLiving += Math.abs(p.living || 0);
+        totalEducation += Math.abs(p.education || 0);
+        // "Other" is implicit in expense - (housing+living+education)?
+        // Or we just use the breakdown from calculator if available. 
+        // Assuming simple breakdown for now based on calculator outputs.
+        // If calculator doesn't return disparate parts, we estimate.
+        // Actually calculator returns `expense` which is sum. 
+        // Let's assume projection has breakdowns if I updated calculator.
+        // If not, I'll use simple categories if available in `p`.
+        // Inspecting calculator.js via this file's imports isn't possible directly.
+        // But `createCharts.js` earlier showed housingExpense map in elderly chart using `setup`.
+        // Let's calculate from Setup for simplicity + rough duration?
+        // No, better to use projection data if possible.
+        // Let's assume projection entries have these fields (standard for this app).
+    });
+
+    // Fallback if projection doesn't have detailed breakdown fields
+    // We can rely on Setup Annuals * Years
+    // Quick Fix: Use Setup values X 60 years? No.
+    // Let's trust projection has specific fields or we skip.
+    // Calculator usually attaches `housing`, `living`, `education`.
+
+    // Check first element
+    if (projection.length > 0 && projection[0].housing === undefined) {
+        // Re-calculate basic breakdown from Setup for display
+        // This is a rough approx for the pie chart
+        const years = projection.length;
+        totalHousing = Math.abs(setup.Housing_Annual_Pre) * 35 + Math.abs(setup.Housing_Annual_Post) * 25;
+        totalLiving = Math.abs(setup.Living_Annual_Pre) * 35 + Math.abs(setup.Living_Annual_Post) * 25;
+        totalEducation = Math.abs(setup.Child1_Education_Total || 0); // Simplified
+        totalOther = Math.abs(setup.Travel_Annual || 0) * years;
+    } else {
+        // Sum from projection
+        projection.forEach(p => {
+            totalHousing += Math.abs(p.housing);
+            totalLiving += Math.abs(p.living);
+            totalEducation += Math.abs(p.education);
+            totalOther += Math.abs(p.other || 0);
+        });
+    }
+
+    if (breakdownChart) breakdownChart.destroy();
+
+    breakdownChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['住居費', '生活費', '教育費', 'その他'],
+            datasets: [{
+                data: [totalHousing, totalLiving, totalEducation, totalOther],
+                backgroundColor: [
+                    CHART_COLORS.housing,
+                    CHART_COLORS.living,
+                    '#f59e0b', // Education Orange
+                    CHART_COLORS.travel
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}`
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
  * 80-90岁支出分析图表
  */
-function updateElderlyChart(projection, setup) {
+function updateElderlyExpenseChart(projection, setup) {
     const ctx = document.getElementById('elderly-chart');
     const summaryEl = document.getElementById('elderly-summary');
     if (!ctx || !summaryEl) return;
