@@ -3,9 +3,12 @@
  * Models: Qwen3-32B → Kimi K2 → Llama 4 Scout
  */
 
-// API Key should be set via environment variable VITE_GROQ_API_KEY
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+// Use local proxy to keep API Key secure on server side
+// The key VITE_GROQ_API_KEY should be set in Cloudflare Pages Environment Variables
+const API_URL = '/api/chat';
+
+// No key needed on frontend!
+const GROQ_API_KEY = '';
 
 const MODELS = [
     'qwen/qwen3-32b',
