@@ -61,7 +61,12 @@ function init() {
     const chatUI = createChatInterface(
         // Update Setup callback
         (key, value) => {
-            state.setup[key] = value;
+            if (key === '__APPLY_PROFILE_EVENTS__') {
+                // Special case for bulk event update from Profile Matching
+                state.events = [...value]; // Replace default events with Profile events
+            } else {
+                state.setup[key] = value;
+            }
             saveState();
         },
         // On Complete callback - Show "View Results" button

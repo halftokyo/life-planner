@@ -843,17 +843,55 @@ input {
   }
 }
 
-/* Print/PDF styles */
-@media print {
-  .pdf-only-header {
-    display: block;
-    text-align: center;
-    margin-bottom: 24px;
-  }
+/* ========================================
+   Shared UI Elements
+   ======================================== */
+.app-header-shared {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  .results-header,
-  .btn-back,
-  .results-actions {
-    display: none !important;
-  }
+.app-header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Apply to Dashboard Header */
+.dashboard-header {
+  /* Inherit shared styles via class in HTML or duplicate props here if structure differs */
+  /* Let's make dashboard-header match exactly */
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Chat Header (New) - to be added in ChatInterface if needed, or Main Layout */
+.chat-header-styled {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+  margin-bottom: 0;
+  text-align: center;
+  background: white;
+}
+
+.chat-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
