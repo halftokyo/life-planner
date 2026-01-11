@@ -258,108 +258,143 @@ input {
 }
 
 /* ========================================
-   Chat Interface
+   ChatGPT Style Chat Interface
    ======================================== */
-.chat-container {
-  max-width: 700px;
-  margin: 0 auto;
+.chat-gpt-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 200px);
-  min-height: 500px;
+  height: 100%;
+  position: relative;
+  background-color: white;
 }
 
-.chat-messages {
+.chat-messages-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 20px;
+  padding-bottom: 120px;
+  /* Space for fixed input */
+}
+
+.chat-messages-content {
+  max-width: 768px;
+  /* Standard text width */
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.message-row {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
+  gap: 16px;
+  padding: 24px 20px;
+  border-bottom: 1px solid transparent;
 }
 
-.chat-bubble {
-  max-width: 80%;
-  padding: 16px 20px;
-  font-size: 1rem;
-  line-height: 1.6;
-  position: relative;
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.message-row.bot {
+  background-color: transparent;
+  /* or nice subtle gray for AI? Notion is clean white */
 }
 
-@keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.message-row.user {
+  background-color: transparent;
 }
 
-.chat-bubble.bot {
-  align-self: flex-start;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border-radius: 20px 20px 20px 4px;
-}
-
-.chat-bubble.user {
-  align-self: flex-end;
-  background: var(--text-primary);
-  color: white;
-  border-radius: 20px 20px 4px 20px;
-}
-
-.chat-input-area {
-  margin-top: 20px;
-  display: flex;
-  gap: 12px;
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
-}
-
-.chat-input {
-  flex: 1;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  font-size: 1rem;
-  transition: border 0.2s;
-  outline: none;
-}
-
-.chat-input:focus {
-  border-color: var(--text-primary);
-}
-
-.chat-input:disabled {
-  background: var(--bg-hover);
-  cursor: not-allowed;
-}
-
-.chat-send-btn {
-  background: var(--text-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  width: 48px;
-  font-size: 1.2rem;
+.message-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  /* Notion/GPT style square-ish */
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.message-row.bot .message-avatar {
+  background-color: #10a37f;
+  /* Open AI Green or similar */
+  color: white;
+}
+
+.message-row.user .message-avatar {
+  background-color: #555;
+  color: white;
+}
+
+.message-content {
+  flex: 1;
+  line-height: 1.6;
+  color: var(--text-primary);
+  font-size: 1rem;
+  white-space: pre-wrap;
+  /* Preserve formatting */
+}
+
+/* Input Area */
+.chat-input-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-image: linear-gradient(to bottom, transparent, white 20%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-input-wrapper {
+  width: 100%;
+  max-width: 768px;
+  position: relative;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+}
+
+.chat-input-textarea {
+  flex: 1;
+  border: none;
+  resize: none;
+  max-height: 200px;
+  padding: 4px 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-family: inherit;
+  outline: none;
+}
+
+.chat-send-btn-icon {
+  background: #19c37d;
+  /* GPT Green */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   transition: opacity 0.2s;
+  margin-left: 8px;
 }
 
-.chat-send-btn:hover {
-  opacity: 0.9;
+.chat-send-btn-icon:disabled {
+  background: #ddd;
+  color: #888;
+  cursor: default;
 }
 
-.chat-send-btn:disabled {
-  background: var(--text-tertiary);
-  cursor: not-allowed;
+.chat-helper-text {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 8px;
 }
 
 /* ========================================
@@ -614,6 +649,86 @@ input {
   font-size: 0.8rem;
   border-top: 1px solid var(--border);
   margin-top: 60px;
+}
+
+/* ========================================
+   Cashmate Style Dashboard
+   ======================================== */
+.dashboard-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 16px;
+  /* Soft colorful shadow/border effect can be achieved or just clean shadow */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-body {
+  position: relative;
+  height: 300px;
+  /* Fixed height for charts */
+  width: 100%;
+}
+
+/* Ensure canvas fits */
+.card-body canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Update Profile Summary & Events Table to match Card Style */
+.notion-callout,
+.events-table {
+  /* We can override these or refactor components. 
+       Let's just override .notion-callout to look like .dashboard-card for consistency */
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding: 24px !important;
+}
+
+.summary-title,
+.callout-title {
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
 }
 
 /* ========================================

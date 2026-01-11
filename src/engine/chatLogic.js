@@ -1,261 +1,159 @@
-import { defaultSetup } from '../data/defaults.js';
+import { defaultSetup, setupFields } from '../data/defaults.js';
+import { sendMessage } from '../services/groqService.js';
 
 /**
- * Chat flow definition
- * Defines the questions, validation, and state updates
+ * AI-driven Chat Engine
+ * Logic:
+ * 1. Parse User Input (Regex) -> Update State
+ * 2. Check Missing Fields
+ * 3. Call AI to ask for missing fields
  */
-
-export const chatFlow = [
-    {
-        id: 'welcome',
-        message: `こんにちは。家庭のファイナンシャルプランニングをお手伝いするAIアシスタントです。
-
-以下のような形式で、ご家族の情報をまとめて入力していただけますか？
-（面倒な場合は「開始」とだけ入力して、一つずつ答えていくこともできます）
-
-【入力例】
-私の生年: 1985
-年収: 800万
-配偶者の生年: 1990
-配偶者の年収: 600万
-子供の生年: 2020
-金融資産: 5000万
-住居費: 年240万
-生活費: 年300万`,
-        field: 'Person1_Birth_Year', // Assign to p1 birth initially, but logic will handle bulk
-        type: 'text', // Changed to text to allow bulk input
-        // parse logic will determine if it's a single value or bulk
-    },
-    {
-        id: 'p1_salary',
-        message: '現在の年収（額面）は大体どのくらいですか？',
-        field: 'Person1_Salary_Start',
-        type: 'currency',
-        validate: (val) => val >= 0,
-        transform: (val) => val * 10000
-    },
-    {
-        id: 'p2_birth',
-        message: '配偶者の方のお生まれ年も教えてください。（独身の場合は「なし」と入力）',
-        field: 'Person2_Birth_Year',
-        type: 'number_or_skip',
-    },
-    {
-        id: 'p2_salary',
-        message: '配偶者の方の現在の年収はどのくらいですか？',
-        field: 'Person2_Salary_Start',
-        condition: (state) => state.setup.Person2_Birth_Year !== null,
-        type: 'currency'
-    },
-    {
-        id: 'child_birth',
-        message: 'お子様がいらっしゃる場合、第一子のお生まれ年を教えてください。（いない場合は「なし」）',
-        field: 'Child1_Birth_Year',
-        type: 'number_or_skip',
-    },
-    {
-        id: 'assets',
-        message: '現在の世帯の金融資産（現金、株式など）の合計はどのくらいですか？',
-        field: 'Initial_Asset',
-        type: 'currency'
-    },
-    {
-        id: 'housing',
-        message: '現在の年間の住居費（家賃またはローン返済額）はどのくらいですか？',
-        field: 'Housing_Annual_Pre',
-        type: 'currency',
-        transform: (val) => -Math.abs(val)
-    },
-    {
-        id: 'living',
-        message: '住居費を除く、その他の生活費（食費、光熱費など）の年間合計はざっくりどのくらいですか？',
-        field: 'Living_Annual_Pre',
-        type: 'currency',
-        transform: (val) => -Math.abs(val)
-    }
-];
 
 export class ChatEngine {
     constructor(updateStateCallback, finishCallback) {
-        this.currentStepIndex = 0;
         this.updateState = updateStateCallback;
         this.finish = finishCallback;
-        this.history = [];
+        this.history = []; // UI history
+        this.conversationContext = []; // AI context (role: user/assistant)
         this.state = { ...defaultSetup };
-        this.providedFields = new Set(); // Track which fields were extracted from bulk input
+        this.providedFields = new Set();
+        this.isProcessing = false;
     }
 
     start() {
-        this.askCurrentQuestion();
+        // Initial Greeting
+        const greeting = `こんにちは。AIファイナンシャルプランナーです。
+あなたのライフプラン・シミュレーションを作成します。
+
+まずは、あなたのことやご家族について教えてください。
+（例：私は35歳、年収600万。妻は32歳、年収400万。子供が一人います。）`;
+
+        this.addMessage('bot', greeting);
+        this.conversationContext.push({ role: 'assistant', content: greeting });
     }
 
-    askCurrentQuestion() {
-        const step = chatFlow[this.currentStepIndex];
+    async handleInput(input) {
+        if (!input.trim() || this.isProcessing) return;
 
-        // Check condition
-        if (step.condition && !step.condition({ setup: this.state })) {
-            this.nextStep();
-            return;
-        }
-
-        // Adaptive Skip: If field is already provided via bulk input (and it's not the first welcome step which acts as the prompt)
-        // The first step (welcome) matches 'Person1_Birth_Year' field but serves as the bulk input receiver.
-        // If we parsed P1 Birth Year from bulk, we should NOT skip the welcome (because it was the prompt), 
-        // but we should proceed without asking again?
-        // Actually, 'welcome' step has already been "asked" (displayed). We are typically calling askCurrentQuestion logic for the NEXT step.
-        // So for step [1] and beyond, if the field is in providedFields, we skip.
-
-        if (this.currentStepIndex > 0 && step.field && this.providedFields.has(step.field)) {
-            this.nextStep();
-            return;
-        }
-
-        this.addMessage('bot', step.message);
-    }
-
-    nextStep() {
-        this.currentStepIndex++;
-        if (this.currentStepIndex >= chatFlow.length) {
-            this.complete();
-        } else {
-            // Recursive call to check next step's skip condition immediately
-            setTimeout(() => this.askCurrentQuestion(), 600); // Small delay for natural feel
-        }
-    }
-
-    handleInput(input) {
+        this.isProcessing = true;
         this.addMessage('user', input);
-        const step = chatFlow[this.currentStepIndex];
+        this.conversationContext.push({ role: 'user', content: input });
 
-        // Special handling for the first step (Welcome/Bulk input)
-        if (this.currentStepIndex === 0) {
-            const extractedCount = this.parseBulkInput(input);
-            if (extractedCount > 0) {
-                // If we extracted data, we assume the user attempted a bulk input.
-                // We add a system message acknowledging what we understood?
-                // Or just move on. Let's strictly move on to fill gaps.
-                this.addMessage('bot', `ありがとうございます。${extractedCount}項目の情報を認識しました。不足している情報を確認します。`);
-                this.nextStep();
-                return;
-            }
-            // If no bulk patterns found, treat as single input for the first field (P1 Birth) if it looks like a year
-            // Fallback to normal parsing below for simple "1985" or "Start"
-            if (input.includes('開始') || input.toLowerCase().includes('start')) {
-                this.nextStep(); // Just start questioning
-                return;
-            }
-        }
+        // 1. Regex Parsing (Hybrid Approach)
+        // We still use regex for high-precision extraction of numbers/patterns
+        const extractedCount = this.parseBulkInput(input);
 
-        // Normal single field parsing
-        let value = this.parseInput(input, step);
+        // 2. Check Completeness
+        const { isComplete, missingFields, nextQuestionHint } = this.checkCompleteness();
 
-        // If parsing returned null/invalid but we expected something specific?
-        // For the welcome step, if regex failed but it looks like a number:
-        if (this.currentStepIndex === 0 && !isNaN(value) && value > 1900 && value < 2025) {
-            // It's likely just the year
-            this.state[step.field] = value;
-            this.updateState(step.field, value);
-            this.providedFields.add(step.field); // Mark as provided
-            this.nextStep();
+        if (isComplete) {
+            this.complete();
+            this.isProcessing = false;
             return;
         }
 
-        // Validation (skip if it was bulk input handled above)
-        if (step.validate && !step.validate(value)) {
-            if (step.type === 'number_or_skip' && (input === 'なし' || input === 'none')) {
-                // Pass
-            } else if (this.currentStepIndex === 0) {
-                // If first step failed validation AND wasn't bulk...
-                // Could be "Start" command which we handled... or invalid year
-                this.addMessage('bot', '入力を認識できませんでした。「開始」と入力するか、西暦（例：1985）を入力してください。');
-                return;
-            } else {
-                this.addMessage('bot', step.error || '入力内容を確認してください。');
-                return;
-            }
-        }
+        // 3. Call AI
+        try {
+            // Construct System Prompt with specific context
+            const contextPrompt = this.constructContextPrompt(missingFields);
 
-        // Special handling for skip
-        if (step.type === 'number_or_skip' && (input === 'なし' || input === 'none')) {
-            value = null;
-        }
+            // Call Groq
+            // We append the contextPrompt as a system message at the end or update the main system prompt?
+            // Better to prepend system prompt, and maybe append a "Hidden State" reminder
+            const messages = [
+                { role: 'system', content: contextPrompt },
+                ...this.conversationContext.slice(-6) // Keep last few turns for context window
+            ];
 
-        // Update state
-        if (value !== null) {
-            this.state[step.field] = value;
-            this.updateState(step.field, value);
-            this.providedFields.add(step.field);
-        }
+            const response = await sendMessage(messages);
 
-        this.nextStep();
+            // Display AI Response
+            this.addMessage('bot', response.content);
+            this.conversationContext.push({ role: 'assistant', content: response.content });
+
+        } catch (error) {
+            console.error('AI Error:', error);
+            // Fallback if AI fails
+            this.addMessage('bot', `すみません、少し調子が悪いようです。もう一度お願いします。（${nextQuestionHint}）`);
+        } finally {
+            this.isProcessing = false;
+        }
     }
 
-    parseBulkInput(text) {
-        let count = 0;
-        const s = this.state;
+    checkCompleteness() {
+        // Define required fields
+        const required = [
+            'Person1_Birth_Year',
+            'Person1_Salary_Start',
+            'Initial_Asset',
+            'Housing_Annual_Pre',
+            'Living_Annual_Pre'
+        ];
 
-        // Helper to extract
-        const extract = (regex, field, transform = null) => {
-            const match = text.match(regex);
-            if (match && match[1]) {
-                let val = parseFloat(match[1].replace(/,/g, ''));
-                // Check modifiers in the matched string or surrounding? 
-                // Simple heuristic for "万"
-                const fullMatch = match[0];
-                if (fullMatch.includes('万')) val *= 10000;
-                else if (fullMatch.includes('億')) val *= 100000000;
+        // Spouse Logic: If user mentions spouse but no data, we need it. 
+        // Note: For simplicity in this version, we ask assuming typical family setup 
+        // OR we rely on AI to ask "配偶者はいらっしゃいますか？"
+        // Let's rely on providedFields. If 'Person2_Birth_Year' is NOT provided and we haven't asked about it...
+        // Actually, let's look at the null values in state.
 
-                // Specific transforms
-                if (transform) val = transform(val);
+        // Simple Logic:
+        // 1. P1 Birth & Salary are MUST.
+        // 2. Asset, Housing, Living are MUST.
+        // 3. P2 & Child are Optional BUT we should verify if they exist.
+        //    We can consider P2/Child done if the user specifically said "none" or "hitori" or we inferred it.
+        //    For now, let's enforce core fields are non-null.
 
-                this.state[field] = val;
-                this.updateState(field, val);
-                this.providedFields.add(field);
-                count++;
-            }
+        // We will treat 0 as valid for some, but null means missing.
+        let missing = [];
+
+        if (!this.state.Person1_Birth_Year) missing.push('世帯主の生まれ年');
+        if (this.state.Person1_Salary_Start === null || this.state.Person1_Salary_Start === undefined) missing.push('世帯主の年収');
+        if (this.state.Initial_Asset === null || this.state.Initial_Asset === undefined) missing.push('現在の金融資産（貯金など）');
+        if (this.state.Housing_Annual_Pre === null || this.state.Housing_Annual_Pre === undefined) missing.push('年間の住居費');
+        if (this.state.Living_Annual_Pre === null || this.state.Living_Annual_Pre === undefined) missing.push('年間の生活費（住居費以外）');
+
+        // Note: We don't strictly block on Spouse/Child to avoid infinite loops if AI doesn't extract "None".
+        // Instead, the AI prompt will guide asking about family structure if unknown.
+
+        return {
+            isComplete: missing.length === 0,
+            missingFields: missing,
+            nextQuestionHint: missing.length > 0 ? `${missing[0]}について教えてください` : ''
         };
-
-        // Person 1
-        extract(/(?:私|本人|夫|旦那|p1).*?(?:生年|生まれ|birth).*?(\d{4})/i, 'Person1_Birth_Year');
-        extract(/(?:私|本人|夫|旦那|p1|年収).*?(?:年収|給与|salary).*?(\d[\d,.]*)/i, 'Person1_Salary_Start', (v) => v < 10000 ? v * 10000 : v); // Heuristic: if < 10000 assume ten-thousands unit implies user meant raw number or we missed '万'
-
-        // Spouse - distinct patterns needed
-        extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:生年|生まれ|birth).*?(\d{4})/i, 'Person2_Birth_Year');
-        extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:年収|給与|salary).*?(\d[\d,.]*)/i, 'Person2_Salary_Start', (v) => v < 10000 ? v * 10000 : v);
-
-        // Child
-        extract(/(?:子供|子|娘|息子|child).*?(?:生年|生まれ|birth).*?(\d{4})/i, 'Child1_Birth_Year');
-
-        // Assets
-        extract(/(?:資産|貯金|asset).*?(\d[\d,.]*)/i, 'Initial_Asset', (v) => v < 10000 ? v * 10000 : v);
-
-        // Housing - Negative
-        extract(/(?:住居|家賃|ローン|housing).*?(\d[\d,.]*)/i, 'Housing_Annual_Pre', (v) => -Math.abs(v < 1000 ? v * 10000 : v));
-
-        // Living - Negative
-        extract(/(?:生活|食費|living).*?(\d[\d,.]*)/i, 'Living_Annual_Pre', (v) => -Math.abs(v < 1000 ? v * 10000 : v));
-
-        return count;
     }
 
-    parseInput(input, step) {
-        if (step.type === 'currency' || step.type === 'number') {
-            let clean = input.replace(/,/g, '');
-            let num = parseFloat(clean);
+    constructContextPrompt(missingFields) {
+        // Create a summary of current known state
+        const s = this.state;
+        const known = `
+[既知の情報]
+- 世帯主生年: ${s.Person1_Birth_Year || '?'}
+- 世帯主年収: ${s.Person1_Salary_Start ? (s.Person1_Salary_Start / 10000) + '万' : '?'}
+- 配偶者生年: ${s.Person2_Birth_Year || '未確認/なし'}
+- 配偶者年収: ${s.Person2_Salary_Start ? (s.Person2_Salary_Start / 10000) + '万' : '未確認/なし'}
+- 子供生年: ${s.Child1_Birth_Year || '未確認/なし'}
+- 金融資産: ${s.Initial_Asset ? (s.Initial_Asset / 10000) + '万' : '?'}
+- 住居費: ${s.Housing_Annual_Pre ? Math.abs(s.Housing_Annual_Pre / 10000) + '万' : '?'}
+- 生活費: ${s.Living_Annual_Pre ? Math.abs(s.Living_Annual_Pre / 10000) + '万' : '?'}
+        `;
 
-            if (input.includes('万')) {
-                num = parseFloat(input.replace('万', '')) * 10000;
-            } else if (input.includes('億')) {
-                num = parseFloat(input.replace('億', '')) * 100000000;
-            } else if (step.type === 'currency' && num < 10000) {
-                // Fallback: if user types "800" for salary, likely means 800万
-                num = num * 10000;
-            }
-
-            if (step.transform) return step.transform(num);
-            return num;
+        if (missingFields.length === 0) {
+            return `全ての情報が揃いました。「ありがとうございます。シミュレーションを作成します」と答えてください。`;
         }
-        return input;
+
+        return `
+あなたはプロのファイナンシャルプランナーAIです。
+以下の情報が不足しています: ${missingFields.join(', ')}。
+
+${known}
+
+ユーザーとの会話の履歴を踏まえて、
+不足している情報だけを、優しく、自然な会話の流れで聞いてください。
+一度にたくさんの質問をせず、1つか2つずつ聞いてください。
+もしユーザーが「なし」や「独身」と言った場合は、それを受け入れて次の質問へ進んでください。
+
+重要: 数値を聞くときは「万円単位」で答えてもらうとスムーズです。
+`;
     }
 
     addMessage(type, text) {
@@ -264,7 +162,46 @@ export class ChatEngine {
     }
 
     complete() {
-        this.addMessage('bot', 'ありがとうございます！シミュレーション結果を作成しました。');
-        setTimeout(() => this.finish(), 1000);
+        this.addMessage('bot', 'ありがとうございます！全ての情報が揃いました。シミュレーション結果を作成します。');
+        // Small delay before firing finish to let user read
+        setTimeout(() => this.finish(), 1500);
+    }
+
+    // Reuse existing bulk parser logic because it's robust for Japanese numbers
+    parseBulkInput(text) {
+        let count = 0;
+        // Helper to extract
+        const extract = (regex, field, transform = null) => {
+            const match = text.match(regex);
+            if (match && match[1]) {
+                let val = parseFloat(match[1].replace(/,/g, ''));
+                const fullMatch = match[0];
+                if (fullMatch.includes('万')) val *= 10000;
+                else if (fullMatch.includes('億')) val *= 100000000;
+
+                if (transform) val = transform(val);
+
+                // Update if not already set or override? Override is better for corrections.
+                this.state[field] = val;
+                this.updateState(field, val);
+                this.providedFields.add(field);
+                count++;
+            }
+        };
+
+        // Reuse Regex Patterns (Simplified for brevity but functionally same)
+        extract(/(?:私|本人|夫|旦那|p1).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Person1_Birth_Year', v => v < 100 ? 2025 - v : v); // Convert Age to Year if < 100
+        extract(/(?:私|本人|夫|旦那|p1|年収|給与).*?(?:年収|給与|手取り).*?(\d[\d,.]*)/i, 'Person1_Salary_Start', v => v < 10000 ? v * 10000 : v);
+
+        extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Person2_Birth_Year', v => v < 100 ? 2025 - v : v);
+        extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:年収|給与).*?(\d[\d,.]*)/i, 'Person2_Salary_Start', v => v < 10000 ? v * 10000 : v);
+
+        extract(/(?:子供|子|娘|息子).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Child1_Birth_Year', v => v < 100 ? 2025 - v : v);
+
+        extract(/(?:資産|貯金|貯蓄).*?(\d[\d,.]*)/i, 'Initial_Asset', v => v < 10000 ? v * 10000 : v);
+        extract(/(?:住居|家賃|ローン).*?(\d[\d,.]*)/i, 'Housing_Annual_Pre', v => -Math.abs(v < 1000 ? v * 10000 : v));
+        extract(/(?:生活|食費|光熱).*?(\d[\d,.]*)/i, 'Living_Annual_Pre', v => -Math.abs(v < 1000 ? v * 10000 : v));
+
+        return count;
     }
 }

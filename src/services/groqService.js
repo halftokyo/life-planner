@@ -11,27 +11,12 @@ const API_URL = '/api/chat';
 const GROQ_API_KEY = '';
 
 const MODELS = [
-    'qwen/qwen3-32b',
-    'moonshotai/kimi-k2-instruct-0905',
-    'meta-llama/llama-4-scout-17b-16e-instruct'
+    'llama-3.3-70b-versatile',
+    'llama-3.1-70b-versatile',
+    'mixtral-8x7b-32768'
 ];
 
-const SYSTEM_PROMPT = `あなたは家庭のファイナンシャルプランニングを手伝うAIアシスタントです。
-ユーザーから家族の情報（生年、年収、資産、支出など）を収集し、シミュレーションに必要なデータを整理します。
-
-必要な情報:
-- 世帯主の生年と年収
-- 配偶者の生年と年収（いる場合）
-- 子供の生年（いる場合）
-- 現在の金融資産
-- 年間住居費
-- 年間生活費
-
-ユーザーが情報を提供したら、理解した内容を簡潔に確認し、不足している情報があれば優しく聞いてください。
-すべての情報が揃ったら「情報収集が完了しました」と伝えてください。
-
-回答は簡潔に、フレンドリーなトーンで。`;
-
+// Context is handled by the caller (chatLogic.js)
 let currentModelIndex = 0;
 
 export async function sendMessage(messages) {
@@ -50,10 +35,7 @@ export async function sendMessage(messages) {
                 },
                 body: JSON.stringify({
                     model: model,
-                    messages: [
-                        { role: 'system', content: SYSTEM_PROMPT },
-                        ...messages
-                    ],
+                    messages: messages, // Pass messages directly
                     temperature: 0.7,
                     max_tokens: 1024,
                 }),

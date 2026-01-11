@@ -4,6 +4,29 @@ import { formatCurrency } from '../engine/calculator.js';
 // 注册 Chart.js 组件
 Chart.register(...registerables);
 
+const CHART_COLORS = {
+    asset: 'rgba(139, 92, 246, 0.8)', // Purple
+    income: 'rgba(16, 185, 129, 0.8)', // Green
+    expense: 'rgba(239, 68, 68, 0.8)', // Red
+    tax: 'rgba(245, 158, 11, 0.8)',    // Orange
+    saving: 'rgba(59, 130, 246, 0.8)', // Blue
+
+    // Breakdown pie colors
+    housing: 'rgba(236, 72, 153, 0.8)', // Pink
+    living: 'rgba(16, 185, 129, 0.8)',
+    medical: 'rgba(245, 158, 11, 0.8)',
+    travel: 'rgba(59, 130, 246, 0.8)',
+
+    border: 'rgba(255, 255, 255, 1.0)',
+    grid: 'rgba(0, 0, 0, 0.05)',
+    text: '#6b7280'
+};
+
+const CHART_FONTS = {
+    family: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    size: 13
+};
+
 // 存储图表实例
 let assetChart = null;
 let cashFlowChart = null;
@@ -14,37 +37,24 @@ let elderlyChart = null;
  */
 export function createChartsContainer() {
     const container = document.createElement('div');
-    container.className = 'charts-container';
+    container.className = 'dashboard-grid'; // Use grid layout
 
-    container.appendChild(createChartWrapper('net-asset-chart', '純資産推移（50年間）', '💰'));
-    container.appendChild(createChartWrapper('cash-flow-chart', '年間収支推移', '📊'));
-    container.appendChild(createChartWrapper('expense-breakdown-chart', '生涯支出の内訳', '💸')); // New chart
-    container.appendChild(createChartWrapper('elderly-expense-chart', '高齢期（80-90歳）の支出分析', '🏥', true)); // Renamed and added small class
-    container.appendChild(createDataTableWrapper()); // Re-added data table
+    // Asset Chart
+    const assetWrapper = createChartCard('金融資産推移', 'trending-up', 'assetChart');
+
+    // Income/Expense Chart
+    const balanceWrapper = createChartCard('収支バランス', 'bar-chart-2', 'balanceChart');
+
+    // Breakdown Chart
+    const breakdownWrapper = createChartCard('生涯支出の内訳', 'pie-chart', 'breakdownChart');
+
+    container.appendChild(assetWrapper);
+    container.appendChild(balanceWrapper);
+    container.appendChild(breakdownWrapper);
 
     return container;
 }
 
-// Helper function to create chart sections
-function createChartWrapper(id, title, icon, isSmall = false) {
-    const section = document.createElement('div');
-    section.className = 'chart-section';
-    section.innerHTML = `
-    <h3 class="chart-title">
-      <span class="chart-icon">${icon}</span>
-      ${title}
-    </h3>
-    <div class="chart-wrapper${isSmall ? ' chart-wrapper-small' : ''}">
-      <canvas id="${id}"></canvas>
-    </div>
-  `;
-    if (id === 'elderly-expense-chart') { // Add summary div for elderly chart
-        section.innerHTML += `<div id="elderly-summary" class="chart-summary"></div>`;
-    }
-    return section;
-}
-
-// Helper function to create data table section
 function createDataTableWrapper() {
     const section = document.createElement('div');
     section.className = 'chart-section';
