@@ -16,57 +16,56 @@ export function createChartsContainer() {
     const container = document.createElement('div');
     container.className = 'charts-container';
 
-    container.innerHTML = `
-    <div class="chart-section">
-      <h3 class="chart-title">
-        <span class="chart-icon">💰</span>
-        純資産推移（50年間）
-      </h3>
-      <div class="chart-wrapper">
-        <canvas id="asset-chart"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-section">
-      <h3 class="chart-title">
-        <span class="chart-icon">📊</span>
-        年間収支推移
-      </h3>
-      <div class="chart-wrapper">
-        <canvas id="cashflow-chart"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-section">
-      <h3 class="chart-title">
-        <span class="chart-icon">🏥</span>
-        高齢期（80-90歳）の支出分析
-      </h3>
-      <div class="chart-wrapper chart-wrapper-small">
-        <canvas id="elderly-chart"></canvas>
-      </div>
-      <div id="elderly-summary" class="chart-summary"></div>
-    </div>
-
-    <div class="chart-section">
-      <h3 class="chart-title">
-        <span class="chart-icon">📋</span>
-        詳細データ
-      </h3>
-      <div id="data-table" class="data-table-container"></div>
-    </div>
-  `;
+    container.appendChild(createChartWrapper('net-asset-chart', '純資産推移（50年間）', '💰'));
+    container.appendChild(createChartWrapper('cash-flow-chart', '年間収支推移', '📊'));
+    container.appendChild(createChartWrapper('expense-breakdown-chart', '生涯支出の内訳', '💸')); // New chart
+    container.appendChild(createChartWrapper('elderly-expense-chart', '高齢期（80-90歳）の支出分析', '🏥', true)); // Renamed and added small class
+    container.appendChild(createDataTableWrapper()); // Re-added data table
 
     return container;
+}
+
+// Helper function to create chart sections
+function createChartWrapper(id, title, icon, isSmall = false) {
+    const section = document.createElement('div');
+    section.className = 'chart-section';
+    section.innerHTML = `
+    <h3 class="chart-title">
+      <span class="chart-icon">${icon}</span>
+      ${title}
+    </h3>
+    <div class="chart-wrapper${isSmall ? ' chart-wrapper-small' : ''}">
+      <canvas id="${id}"></canvas>
+    </div>
+  `;
+    if (id === 'elderly-expense-chart') { // Add summary div for elderly chart
+        section.innerHTML += `<div id="elderly-summary" class="chart-summary"></div>`;
+    }
+    return section;
+}
+
+// Helper function to create data table section
+function createDataTableWrapper() {
+    const section = document.createElement('div');
+    section.className = 'chart-section';
+    section.innerHTML = `
+    <h3 class="chart-title">
+      <span class="chart-icon">📋</span>
+      詳細データ
+    </h3>
+    <div id="data-table" class="data-table-container"></div>
+  `;
+    return section;
 }
 
 /**
  * 更新所有图表
  */
 export function updateCharts(projection, setup) {
-    updateAssetChart(projection);
+    updateNetAssetChart(projection); // Renamed
     updateCashFlowChart(projection);
-    updateElderlyChart(projection, setup);
+    updateExpenseBreakdownChart(projection); // New chart call
+    updateElderlyExpenseChart(projection, setup); // Renamed
     updateDataTable(projection);
 }
 
@@ -94,13 +93,13 @@ function updateAssetChart(projection) {
             datasets: [{
                 label: '純資産（万円）',
                 data: assets,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderColor: '#111827', // Dark gray/black
+                backgroundColor: 'rgba(17, 24, 39, 0.05)',
                 fill: true,
-                tension: 0.3,
+                tension: 0.4,
                 pointRadius: 0,
                 pointHoverRadius: 6,
-                borderWidth: 3,
+                borderWidth: 2,
             }]
         },
         options: {
@@ -111,6 +110,13 @@ function updateAssetChart(projection) {
                     display: false,
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#111827',
+                    bodyColor: '#111827',
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
                     callbacks: {
                         label: (context) => {
                             return `純資産: ${formatCurrency(context.raw * 10000)}`;
@@ -124,8 +130,8 @@ function updateAssetChart(projection) {
                             yMin: 0,
                             yMax: 0,
                             borderColor: 'rgba(239, 68, 68, 0.5)',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
+                            borderWidth: 1,
+                            borderDash: [4, 4],
                         }
                     }
                 } : undefined
@@ -136,14 +142,17 @@ function updateAssetChart(projection) {
                         display: false,
                     },
                     ticks: {
-                        maxTicksLimit: 10,
+                        maxTicksLimit: 8,
+                        color: '#6b7280'
                     }
                 },
                 y: {
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
+                        color: '#f3f4f6',
+                        drawBorder: false,
                     },
                     ticks: {
+                        color: '#6b7280',
                         callback: (value) => formatCurrency(value * 10000),
                     }
                 }
@@ -175,16 +184,16 @@ function updateCashFlowChart(projection) {
                 {
                     label: '収入（万円）',
                     data: incomes,
-                    backgroundColor: 'rgba(34, 197, 94, 0.7)',
-                    borderColor: 'rgb(34, 197, 94)',
-                    borderWidth: 1,
+                    backgroundColor: '#d1d5db', // Light gray
+                    hoverBackgroundColor: '#9ca3af',
+                    borderWidth: 0,
                 },
                 {
                     label: '支出（万円）',
                     data: expenses,
-                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                    borderColor: 'rgb(239, 68, 68)',
-                    borderWidth: 1,
+                    backgroundColor: '#111827', // Black
+                    hoverBackgroundColor: '#374151',
+                    borderWidth: 0,
                 }
             ]
         },
@@ -194,8 +203,20 @@ function updateCashFlowChart(projection) {
             plugins: {
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        padding: 20,
+                        color: '#4b5563'
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#111827',
+                    bodyColor: '#111827',
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 10,
                     callbacks: {
                         label: (context) => {
                             return `${context.dataset.label}: ${formatCurrency(context.raw * 10000)}`;
@@ -209,14 +230,17 @@ function updateCashFlowChart(projection) {
                         display: false,
                     },
                     ticks: {
-                        maxTicksLimit: 10,
+                        color: '#6b7280',
+                        maxTicksLimit: 8,
                     }
                 },
                 y: {
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
+                        color: '#f3f4f6',
+                        drawBorder: false,
                     },
                     ticks: {
+                        color: '#6b7280',
                         callback: (value) => `${(value / 100).toFixed(0)}億`,
                     }
                 }
@@ -273,22 +297,22 @@ function updateElderlyChart(projection, setup) {
                 {
                     label: '住居費',
                     data: housingExpense,
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    backgroundColor: '#e5e7eb', // Gray 200
                 },
                 {
                     label: '生活費',
                     data: livingExpense,
-                    backgroundColor: 'rgba(168, 85, 247, 0.7)',
+                    backgroundColor: '#9ca3af', // Gray 400
                 },
                 {
                     label: '旅行費',
                     data: travelExpense,
-                    backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                    backgroundColor: '#6b7280', // Gray 500
                 },
                 {
                     label: '医療費',
                     data: medicalExpense,
-                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    backgroundColor: '#1f2937', // Gray 800
                 }
             ]
         },
@@ -298,8 +322,19 @@ function updateElderlyChart(projection, setup) {
             plugins: {
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        color: '#4b5563'
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#111827',
+                    bodyColor: '#111827',
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 10,
                     callbacks: {
                         label: (context) => {
                             return `${context.dataset.label}: ${formatCurrency(context.raw * 10000)}`;
@@ -312,14 +347,19 @@ function updateElderlyChart(projection, setup) {
                     stacked: true,
                     grid: {
                         display: false,
+                    },
+                    ticks: {
+                        color: '#6b7280'
                     }
                 },
                 y: {
                     stacked: true,
                     grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
+                        color: '#f3f4f6',
+                        drawBorder: false,
                     },
                     ticks: {
+                        color: '#6b7280',
                         callback: (value) => `${value}万`,
                     }
                 }

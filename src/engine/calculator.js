@@ -136,7 +136,30 @@ export function calculateNetCashFlow(year, setup, events) {
 }
 
 /**
- * 生成完整的50年预测数据
+ * Ensure simulation covers up to age 90 for the youngest spouse
+ * @param {object} setup
+ * @returns {number} Adjusted years
+ */
+export function calculateProjectionYears(setup) {
+    const currentYear = new Date().getFullYear();
+    const startYear = setup.Start_Year || currentYear;
+
+    // Calculate ages in start year
+    const p1Age = startYear - setup.Person1_Birth_Year;
+    const p2Age = startYear - setup.Person2_Birth_Year;
+
+    const youngestAge = Math.min(p1Age, p2Age);
+    const yearsTo90 = 90 - youngestAge;
+
+    // Ensure at least 50 years or up to 90, whichever is longer, allowing user override if larger
+    const minYears = Math.max(50, yearsTo90);
+
+    // If setup.Years is manually set higher, keep it, otherwise ensure coverage
+    return Math.max(setup.Years || 0, minYears);
+}
+
+/**
+ * 生成完整的预测数据 (Auto-extends to age 90)
  * @param {object} setup - 家庭基本设置
  * @param {array} events - 生活事件列表
  * @returns {array} 每年的财务数据
@@ -146,7 +169,9 @@ export function generateProjection(setup, events) {
     let currentAsset = setup.Initial_Asset;
     const realReturnRate = (1 + setup.Invest_Return) / (1 + setup.Inflation);
 
-    for (let i = 0; i < setup.Years; i++) {
+    const totalYears = calculateProjectionYears(setup);
+
+    for (let i = 0; i < totalYears; i++) {
         const year = setup.Start_Year + i;
         const income = calculateIncome(year, setup, events);
         const expense = calculateExpense(year, setup, events);

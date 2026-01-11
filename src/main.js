@@ -4,6 +4,10 @@ import { generateProjection } from './engine/calculator.js';
 import { createSetupForm, updateFormattedValues } from './components/SetupForm.js';
 import { createEventsForm, updateEventsList } from './components/EventsForm.js';
 import { createChartsContainer, updateCharts } from './components/Charts.js';
+import { createChatInterface } from './components/ChatInterface.js';
+import { createProfileSummary } from './components/ProfileSummary.js';
+import { createEventsTable } from './components/EventsTable.js';
+import { createResultsPage } from './components/ResultsPage.js';
 
 // 应用状态
 let state = {
@@ -34,105 +38,155 @@ function saveState() {
     }
 }
 
-// 初始化应用
+// Initialize Application in Chat Mode first
 function init() {
     loadState();
 
-    // 初始化设置表单
-    const setupContainer = document.getElementById('setup-form');
-    if (setupContainer) {
-        const form = createSetupForm(state.setup, (key, value) => {
+    const mainContent = document.querySelector('.main .container');
+    mainContent.innerHTML = '';
+
+    // Creating Layout
+    const layout = document.createElement('div');
+    layout.className = 'app-layout';
+    layout.id = 'app-layout';
+
+    const chatPanel = document.createElement('div');
+    chatPanel.className = 'panel-chat';
+    chatPanel.id = 'chat-panel';
+
+    layout.appendChild(chatPanel);
+    mainContent.appendChild(layout);
+
+    // Initialize Chat
+    const chatUI = createChatInterface(
+        // Update Setup callback
+        (key, value) => {
             state.setup[key] = value;
             saveState();
-            updateFormattedValues(state.setup);
-            refreshCharts();
-        });
-        setupContainer.appendChild(form);
-    }
+        },
+        // On Complete callback - Show "View Results" button
+        () => {
+            showViewResultsButton(chatPanel);
+        }
+    );
+    chatPanel.appendChild(chatUI);
 
-    // 初始化事件表单
-    const eventsContainer = document.getElementById('events-form');
-    if (eventsContainer) {
-        const form = createEventsForm(
-            state.events,
-            // 添加事件
-            (event) => {
-                state.events.push(event);
-                saveState();
-                updateEventsList(state.events, handleRemoveEvent, handleUpdateEvent);
-                refreshCharts();
-            },
-            // 删除事件
-            handleRemoveEvent,
-            // 更新事件
-            handleUpdateEvent
-        );
-        eventsContainer.appendChild(form);
-    }
-
-    // 初始化图表容器
-    const chartsContainer = document.getElementById('charts-container');
-    if (chartsContainer) {
-        const charts = createChartsContainer();
-        chartsContainer.appendChild(charts);
-        refreshCharts();
-    }
-
-    // 初始化 Tab 切换
-    initTabs();
-
-    // 添加重置按钮功能
+    // Add Reset Button Logic
     initResetButton();
 }
 
-// 删除事件处理
+// Show "View Results" button after chat completion
+function showViewResultsButton(container) {
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'view-results-container fade-in';
+    buttonContainer.innerHTML = `
+        <p class="completion-message">✅ 情報収集が完了しました！</p>
+        <button class="btn-primary btn-large" id="view-results-btn">
+            📊 シミュレーション結果を見る
+        </button>
+    `;
+    container.appendChild(buttonContainer);
+
+    document.getElementById('view-results-btn').addEventListener('click', () => {
+        showResultsPage();
+    });
+}
+
+// Navigate to Results Page
+function showResultsPage() {
+    const mainContent = document.querySelector('.main .container');
+    mainContent.innerHTML = '';
+
+    const resultsPage = createResultsPage(state.setup, state.events, () => {
+        // On Back - return to chat/home
+        location.reload(); // Simple refresh for now
+    });
+    mainContent.appendChild(resultsPage);
+}
+
+function initDashboard(container) {
+    // Create Dashboard Structure
+    container.innerHTML = `
+    <div class="dashboard-header">
+      <h2>シミュレーション結果</h2>
+      <div class="dashboard-controls">
+         <button class="btn-sm" id="edit-events-btn">イベント編集</button>
+      </div>
+    </div>
+    <div id="profile-summary-entry"></div>
+    <div id="events-table-entry"></div>
+    <div id="charts-entry"></div>
+    <div id="events-modal" class="modal hidden"></div>
+  `;
+
+    // Profile Summary
+    const summaryContainer = container.querySelector('#profile-summary-entry');
+    summaryContainer.appendChild(createProfileSummary(state.setup));
+
+    // Events Table
+    const eventsTableContainer = container.querySelector('#events-table-entry');
+    eventsTableContainer.appendChild(createEventsTable(state.events));
+
+    const chartsContainer = container.querySelector('#charts-entry');
+    const charts = createChartsContainer();
+    chartsContainer.appendChild(charts);
+
+    refreshCharts();
+
+    // Initialize Events Modal (Hidden by default, shown on button click)
+    const eventsModal = container.querySelector('#events-modal');
+    const eventsForm = createEventsForm(
+        state.events,
+        (event) => { state.events.push(event); saveState(); updateEventsAndCharts(); },
+        (idx) => { state.events.splice(idx, 1); saveState(); updateEventsAndCharts(); },
+        (idx, event) => { state.events[idx] = event; saveState(); updateEventsAndCharts(); }
+    );
+
+    eventsModal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>ライフイベント設定</h2>
+      <div id="events-form-wrapper"></div>
+    </div>
+  `;
+    eventsModal.querySelector('#events-form-wrapper').appendChild(eventsForm);
+
+    // Modal Logic
+    document.getElementById('edit-events-btn').addEventListener('click', () => {
+        eventsModal.classList.remove('hidden');
+    });
+    eventsModal.querySelector('.close-modal').addEventListener('click', () => {
+        eventsModal.classList.add('hidden');
+    });
+}
+
+function updateEventsAndCharts() {
+    const wrapper = document.getElementById('events-form-wrapper');
+    if (wrapper) {
+        // Re-render events list is tricky with current EventsForm implementation 
+        // which appends to its container. 
+        // Ideally EventsForm should allow refreshing list.
+        // For now, let's just refresh charts.
+        updateEventsList(state.events, handleRemoveEvent, handleUpdateEvent);
+    }
+    refreshCharts();
+}
+// Helper to bridge old EventForm logic
 function handleRemoveEvent(index) {
     state.events.splice(index, 1);
     saveState();
-    updateEventsList(state.events, handleRemoveEvent, handleUpdateEvent);
-    refreshCharts();
+    updateEventsAndCharts();
 }
-
-// 更新事件处理
 function handleUpdateEvent(index, event) {
     state.events[index] = event;
     saveState();
-    updateEventsList(state.events, handleRemoveEvent, handleUpdateEvent);
-    refreshCharts();
+    updateEventsAndCharts();
 }
 
 // 刷新图表
 function refreshCharts() {
     const projection = generateProjection(state.setup, state.events);
     updateCharts(projection, state.setup);
-}
-
-// Tab 切换
-function initTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    const panels = document.querySelectorAll('.tab-panel');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetId = tab.dataset.tab;
-
-            // 切换 tab 激活状态
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
-            // 切换 panel 显示
-            panels.forEach(p => {
-                p.classList.remove('active');
-                if (p.id === targetId) {
-                    p.classList.add('active');
-                    // 切换到图表时刷新
-                    if (targetId === 'charts') {
-                        setTimeout(refreshCharts, 100);
-                    }
-                }
-            });
-        });
-    });
 }
 
 // 重置按钮
