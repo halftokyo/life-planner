@@ -1,4 +1,4 @@
-```javascript
+
 import { defaultSetup, setupFields } from '../data/defaults.js';
 import { PROFILES } from '../data/profiles.js';
 import { sendMessage } from '../services/groqService.js';
@@ -32,21 +32,21 @@ export class ChatEngine {
 
 まずは、あなたのことやご家族について教えてください。
 （例：私は35歳、年収600万。妻は32歳、年収400万。子供が一人います。）`;
-        
+
         this.addMessage('bot', greeting);
         this.conversationContext.push({ role: 'assistant', content: greeting });
     }
 
     async handleInput(input) {
         if (!input.trim() || this.isProcessing) return;
-        
+
         this.isProcessing = true;
         this.addMessage('user', input);
         this.conversationContext.push({ role: 'user', content: input });
 
         // 1. Regex Parsing
         this.parseBulkInput(input);
-        
+
         // 2. Attempt Profile Match (if Salary info exists)
         if (!this.matchedProfile && this.hasIncomeInfo()) {
             this.applyBestMatchProfile();
@@ -65,20 +65,20 @@ export class ChatEngine {
         // 4. Call AI
         try {
             const contextPrompt = this.constructContextPrompt(missingFields);
-            
+
             const messages = [
                 { role: 'system', content: contextPrompt },
                 ...this.conversationContext.slice(-6)
             ];
 
             const response = await sendMessage(messages);
-            
+
             this.addMessage('bot', response.content);
             this.conversationContext.push({ role: 'assistant', content: response.content });
 
         } catch (error) {
             console.error('AI Error:', error);
-            this.addMessage('bot', `すみません、少し調子が悪いようです。もう一度お願いします。（${ nextQuestionHint }）`);
+            this.addMessage('bot', `すみません、少し調子が悪いようです。もう一度お願いします。（${nextQuestionHint}）`);
         } finally {
             this.isProcessing = false;
         }
@@ -94,7 +94,7 @@ export class ChatEngine {
         const p1 = s.Person1_Salary_Start || 0;
         const p2 = s.Person2_Salary_Start || 0;
         const totalIncome = p1 + p2;
-        
+
         // Simple Matching Logic
         let match = 'C'; // Default
         if (totalIncome >= 10500000) match = 'A'; // >10.5M -> A
@@ -109,7 +109,7 @@ export class ChatEngine {
         // Actually, requirement says "override with user provided". 
         // So we Load Profile FIRST, then Re-apply User State?
         // Better: Load Profile into a temp obj, then merge User State over it.
-        
+
         // 1. Merge Setup
         const newSetup = { ...profile.setup, ...this.getUserProvidedState() };
         this.state = newSetup;
@@ -120,7 +120,7 @@ export class ChatEngine {
         // But we need to save them. state only has setup?
         // Constructor says: this.state = { ...defaultSetup }; 
         // Main.js expects us to call updateStateCallback(key, val).
-        
+
         // We need to update ALL fields in main state.
         for (const [key, val] of Object.entries(profile.setup)) {
             // Only update if NOT provided by user
@@ -129,7 +129,7 @@ export class ChatEngine {
                 this.state[key] = val;
             }
         }
-        
+
         // Also update EVENTS - How? 
         // ChatEngine constructor doesn't take 'updateEvents'.
         // We might need to expose a way to set events.
@@ -140,15 +140,15 @@ export class ChatEngine {
         // TO DO: We need to update `events` in App State.
         // I will add a special method to `updateStateCallback` if possible, or just ignore events in ChatEngine?
         // User wants the events.
-        
+
         // Let's communicate the Profile Match to UI
-        this.addMessage('bot', `あなたの年収情報から「${ profile.name }」としてシミュレーション設定をプリセットしました。（${ profile.description }）
+        this.addMessage('bot', `あなたの年収情報から「${profile.name}」としてシミュレーション設定をプリセットしました。（${profile.description}）
 不足している細かな情報があれば調整します。`);
-        
+
         // Note: Actual Event update is tricky without callback.
         // I will dispatch a custom event or extended callback logic in next step if needed.
         // For now, let's assume `updateState` might accept 'EVENTS' key if I modify main.js
-        this.updateState('__APPLY_PROFILE_EVENTS__', profile.events); 
+        this.updateState('__APPLY_PROFILE_EVENTS__', profile.events);
     }
 
     getUserProvidedState() {
@@ -171,37 +171,37 @@ export class ChatEngine {
         // But let's check if User specifically said "None" or implied it.
         // If Profile filled it, it acts as "Done". 
         // So we are likely complete immediately after matching if P1 info is there.
-        
+
         return {
             isComplete: missing.length === 0,
             missingFields: missing,
-            nextQuestionHint: missing.length > 0 ? `${ missing[0] } ` : ''
+            nextQuestionHint: missing.length > 0 ? `${missing[0]} ` : ''
         };
     }
 
     constructContextPrompt(missingFields) {
         const s = this.state;
         const profile = this.matchedProfile ? PROFILES[this.matchedProfile].name : '未定';
-        
+
         // Only show relevant fields
         const known = `
 [現在の設定状況]
-    - 適用プロファイル: ${ profile }
-- 世帯主: ${ s.Person1_Birth_Year } 年生まれ, 年収${ s.Person1_Salary_Start / 10000 } 万
-    - 配偶者: ${ s.Person2_Birth_Year || 'なし' }, 年収${ (s.Person2_Salary_Start || 0) / 10000 } 万
-        - 金融資産: ${ (s.Initial_Asset || 0) / 10000 } 万
+    - 適用プロファイル: ${profile}
+- 世帯主: ${s.Person1_Birth_Year} 年生まれ, 年収${s.Person1_Salary_Start / 10000} 万
+    - 配偶者: ${s.Person2_Birth_Year || 'なし'}, 年収${(s.Person2_Salary_Start || 0) / 10000} 万
+        - 金融資産: ${(s.Initial_Asset || 0) / 10000} 万
 `;
         if (missingFields.length === 0) {
-              return `必須情報は揃いました（プロファイル推定含む）。「情報が揃いました。${ profile } ベースでシミュレーションします」と答えてください。`;
+            return `必須情報は揃いました（プロファイル推定含む）。「情報が揃いました。${profile} ベースでシミュレーションします」と答えてください。`;
         }
         return `
-あなたはFP AIです。現在「${ profile }」を想定しています。
-不足情報: ${ missingFields.join(', ') }。
-${ known }
+あなたはFP AIです。現在「${profile}」を想定しています。
+不足情報: ${missingFields.join(', ')}。
+${known}
 不足情報を優しく聞いてください。
 `;
     }
-    
+
     addMessage(type, text) {
         this.history.push({ type, text });
         if (this.onMessageUpdate) this.onMessageUpdate([...this.history]);
@@ -211,7 +211,7 @@ ${ known }
         this.addMessage('bot', 'ありがとうございます！シミュレーション結果を作成します。');
         setTimeout(() => this.finish(), 1500);
     }
-    
+
     parseBulkInput(text) {
         // Reuse previous regex logic
         let count = 0;
@@ -223,7 +223,7 @@ ${ known }
                 if (fullMatch.includes('万')) val *= 10000;
                 else if (fullMatch.includes('億')) val *= 100000000;
                 if (transform) val = transform(val);
-                
+
                 this.state[field] = val;
                 this.updateState(field, val);
                 this.providedFields.add(field);
