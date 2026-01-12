@@ -1,1060 +1,562 @@
 /* ========================================
-   Life Planner - White Minimalist Design
+   1. Variables & Global Styles
    ======================================== */
-
 :root {
-  /* Minimalist Palette */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  /* Slightly off-white for contrast */
-  --bg-hover: #f3f4f6;
+  /* Main Layout Colors */
+  --ui-bg: #ffffff;
+  --ui-border: #f1f5f9;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-main: #fcfcfc;
 
-  --text-primary: #111827;
-  /* Near black */
-  --text-secondary: #6b7280;
-  /* Gray */
-  --text-tertiary: #9ca3af;
-  /* Light gray */
+  /* Theme-specific Colors */
+  --primary-input: #1a1a1a;
+  --primary-assets: #2563eb;
+  --accent: #007AFF;
 
-  --border: #e5e7eb;
-  --border-strong: #d1d5db;
+  /* Chart / KPI Colors */
+  --chart-1: #6366f1;
+  --chart-2: #8b5cf6;
+  --chart-3: #ec4899;
+  --chart-4: #f43f5e;
 
-  --accent: #111827;
-  /* Black accent */
-  --accent-light: #374151;
+  /* Bubble Colors */
+  --bubble-ai: #f4f4f5;
+  --bubble-user: #ffffff;
 
-  --success: #059669;
-  --danger: #dc2626;
-
-  --radius-sm: 4px;
+  /* Spacing & Borders */
   --radius-md: 8px;
   --radius-lg: 12px;
-
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --radius-xl: 24px;
+  --header-h: 64px;
 }
 
-/* Notion-like Styles */
-.notion-callout {
-  padding: 16px 16px 16px 12px;
-  display: flex;
-  border-radius: 3px;
-  background: #F1F1EF;
-  /* Notion default gray bg */
-  margin-bottom: 32px;
-  color: var(--text-primary);
-  border: none;
-}
-
-.notion-callout-icon {
-  font-size: 24px;
-  margin-right: 12px;
-  margin-top: 2px;
-  user-select: none;
-}
-
-.notion-callout-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.summary-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--text-primary);
-}
-
-.summary-grid-props {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 8px 16px;
-  font-size: 14px;
-}
-
-.prop-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.prop-label {
-  color: var(--text-secondary);
-  min-width: 80px;
-  font-size: 13px;
-}
-
-.prop-value {
-  color: var(--text-primary);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Events Table (Notion-style) */
-.events-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.events-table th {
-  text-align: left;
-  padding: 8px 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.events-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.05);
-  color: var(--text-primary);
-}
-
-.events-table tr:last-child td {
-  border-bottom: none;
-}
-
-.events-table .event-year {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.events-table .event-amount {
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-}
-
-.events-table .event-amount.negative {
-  color: #dc2626;
-}
-
-.events-table .event-amount.positive {
-  color: #059669;
-}
-
-.events-table .event-note {
-  color: var(--text-secondary);
-}
-
-.empty-message {
-  color: var(--text-tertiary);
-  font-size: 14px;
-  font-style: italic;
-}
-
-/* Reset */
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  background-color: var(--ui-bg);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
 
-input {
-  font-family: inherit;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
 }
 
 /* ========================================
-   Layout
+   2. Header & Navigation
    ======================================== */
-.container {
-  max-width: 900px;
-  /* Notion often narrower */
-  margin: 0 auto;
-  padding: 0 40px;
-  /* Notion padding */
-}
-
-/* Header */
-.header {
-  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-  /* Notion border color */
-  padding: 12px 0;
-  background: var(--bg-primary);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.header .container {
+.app-header {
+  height: var(--header-h);
+  border-bottom: 1px solid #efefef;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.logo {
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-primary);
-}
-
-.logo-icon {
-  font-size: 1.25rem;
-}
-
-.tagline {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.btn-reset {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  transition: all 0.2s;
-}
-
-.btn-reset:hover {
-  border-color: var(--text-primary);
-  color: var(--text-primary);
-}
-
-/* Button Animations */
-@keyframes btn-pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-}
-
-.btn-pulse {
-  animation: btn-pulse 2s infinite;
-}
-
-/* Modal */
-.modal {
-  padding: 40px 0;
-}
-
-/* Main */
-.main {
-  padding: 40px 0;
-}
-
-/* Fade In Animation */
-.fade-in {
-  animation: fadeIn 0.8s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ========================================
-   ChatGPT Style Chat Interface
-   ======================================== */
-.chat-gpt-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  position: relative;
-  background-color: white;
-}
-
-.chat-messages-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 120px;
-  /* Space for fixed input */
-}
-
-.chat-messages-content {
-  max-width: 768px;
-  /* Standard text width */
-  margin: 0 auto;
-  padding: 24px 0;
-}
-
-.message-row {
-  display: flex;
-  gap: 16px;
-  padding: 24px 20px;
-  border-bottom: 1px solid transparent;
-}
-
-.message-row.bot {
-  background-color: transparent;
-  /* or nice subtle gray for AI? Notion is clean white */
-}
-
-.message-row.user {
-  background-color: transparent;
-}
-
-.message-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-  /* Notion/GPT style square-ish */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 0 24px;
+  z-index: 50;
   flex-shrink: 0;
 }
 
-.message-row.bot .message-avatar {
-  background-color: #10a37f;
-  /* Open AI Green or similar */
-  color: white;
-}
-
-.message-row.user .message-avatar {
-  background-color: #555;
-  color: white;
-}
-
-.message-content {
-  flex: 1;
-  line-height: 1.6;
-  color: var(--text-primary);
-  font-size: 1rem;
-  white-space: pre-wrap;
-  /* Preserve formatting */
-}
-
-/* Input Area */
-.chat-input-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-image: linear-gradient(to bottom, transparent, white 20%);
-  padding: 20px;
+.header-left {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 48px;
 }
 
-.chat-input-wrapper {
-  width: 100%;
-  max-width: 768px;
-  position: relative;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+.brand {
   display: flex;
-  align-items: flex-end;
-  padding: 10px;
+  align-items: center;
+  gap: 12px;
 }
 
-.chat-input-textarea {
-  flex: 1;
-  border: none;
-  resize: none;
-  max-height: 200px;
-  padding: 4px 8px;
-  font-size: 1rem;
-  line-height: 1.5;
-  font-family: inherit;
-  outline: none;
-}
-
-.chat-send-btn-icon {
-  background: #19c37d;
-  /* GPT Green */
-  color: white;
-  border: none;
+.brand-icon {
+  width: 28px;
+  height: 28px;
+  background: #1a1a1a;
   border-radius: 6px;
-  width: 32px;
-  height: 32px;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.brand-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.nav-tabs {
+  display: flex;
+  height: 100%;
+  gap: 32px;
+  align-self: stretch;
+}
+
+.nav-tab {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: opacity 0.2s;
-  margin-left: 8px;
+  transition: all 0.2s;
+  padding: 0 4px;
 }
 
-.chat-send-btn-icon:disabled {
-  background: #ddd;
-  color: #888;
-  cursor: default;
+.nav-tab span {
+  font-size: 10px;
+  margin-left: 4px;
+  opacity: 0.6;
+  font-weight: 400;
 }
 
-.chat-helper-text {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  margin-top: 8px;
+.nav-tab.active {
+  color: #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.nav-tab:not(.active):hover {
+  color: #1a1a1a;
 }
 
 /* ========================================
-   Dashboard
+   3. Input Tab (Minimalist Split View)
    ======================================== */
-.panel-dashboard {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.dashboard-header {
+.input-layout {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
+  flex: 1;
+  overflow: hidden;
 }
 
-.dashboard-header h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.btn-sm {
+/* Left Sidebar: AI Chat */
+.chat-sidebar {
+  width: 420px;
+  border-right: 1px solid #efefef;
   background: white;
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.btn-sm:hover {
-  border-color: var(--text-primary);
-}
-
-/* Charts Layout */
-.charts-container {
   display: flex;
   flex-direction: column;
-  gap: 60px;
+  flex-shrink: 0;
 }
 
-.chart-section {
-  position: relative;
-}
-
-.chart-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 24px;
+.chat-sidebar-header {
+  height: 56px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text-primary);
+  border-bottom: 1px solid #efefef;
 }
 
-.chart-icon {
-  display: none;
-  /* Minimalist - hide default emojis usually */
-}
-
-.chart-wrapper {
-  height: 400px;
-  width: 100%;
-}
-
-.chart-summary {
-  margin-top: 32px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 24px;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-}
-
-.summary-item {
+.ai-badge {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
 }
 
-.summary-label {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+.ai-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+}
+
+.ai-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.summary-value {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Table */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  margin-top: 20px;
-}
-
-.data-table th {
-  text-align: right;
-  padding: 12px;
-  border-bottom: 1px solid var(--text-primary);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.data-table td {
-  text-align: right;
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.data-table tr:last-child td {
-  border-bottom: none;
-}
-
-.data-table th:first-child,
-.data-table td:first-child {
-  text-align: left;
-}
-
-.data-table .negative {
-  color: var(--danger);
-}
-
-/* ========================================
-   Modal
-   ======================================== */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: white;
-  width: 90%;
-  max-width: 600px;
-  height: 80vh;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border-radius: var(--radius-md);
-  padding: 32px;
-  position: relative;
+.chat-history {
+  flex: 1;
   overflow-y: auto;
-}
-
-.close-modal {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 2rem;
-  cursor: pointer;
-  line-height: 1;
-  color: var(--text-secondary);
-}
-
-.close-modal:hover {
-  color: var(--text-primary);
-}
-
-/* Reusing some existing event form styles but minimalizing them */
-.events-section-title {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.event-card {
-  border: 1px solid var(--border);
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-primary);
-}
-
-.event-card.expense {
-  border-left: 3px solid var(--text-primary);
-}
-
-.event-card.income {
-  border-left: 3px solid var(--text-tertiary);
-}
-
-.event-header {
+  padding: 24px;
   display: flex;
-  justify-content: space-between;
-}
-
-.add-event-form {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.add-event-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.btn-primary {
-  background: var(--text-primary);
-  color: white;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  border: none;
-  font-size: 0.9rem;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-}
-
-/* Footer */
-.footer {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--text-tertiary);
-  font-size: 0.8rem;
-  border-top: 1px solid var(--border);
-  margin-top: 60px;
-}
-
-/* ========================================
-   Cashmate Style Dashboard
-   ======================================== */
-.dashboard-header {
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dashboard-header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  flex-direction: column;
   gap: 24px;
-  margin-bottom: 32px;
 }
 
-.dashboard-card {
-  background: white;
-  border-radius: 16px;
-  /* Soft colorful shadow/border effect can be achieved or just clean shadow */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 24px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.card-header {
-  margin-bottom: 20px;
-}
-
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.card-body {
-  position: relative;
-  height: 300px;
-  /* Fixed height for charts */
-  width: 100%;
-}
-
-/* Ensure canvas fits */
-.card-body canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Update Profile Summary & Events Table to match Card Style */
-.notion-callout,
-.events-table {
-  /* We can override these or refactor components. 
-       Let's just override .notion-callout to look like .dashboard-card for consistency */
-  background: white !important;
-  border-radius: 16px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
-  padding: 24px !important;
-}
-
-.summary-title,
-.callout-title {
-  font-weight: 600 !important;
-  font-size: 1.1rem !important;
-}
-
-/* ========================================
-   View Results Button
-   ======================================== */
-.view-results-container {
-  text-align: center;
-  padding: 40px 20px;
-  margin-top: 20px;
-}
-
-.completion-message {
-  font-size: 1.1rem;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-}
-
-.btn-large {
-  padding: 16px 32px;
-  font-size: 1.1rem;
-  border-radius: var(--radius-md);
-}
-
-/* ========================================
-   Results Page
-   ======================================== */
-.results-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px 40px 60px;
-}
-
-.results-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-}
-
-.results-title {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.results-title h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.btn-back {
-  background: transparent;
-  border: 1px solid var(--border);
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-}
-
-.btn-back:hover {
-  background: var(--bg-hover);
-}
-
-.results-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.results-content {
-  background: white;
-}
-
-/* PDF Only Header (hidden on screen) */
-.pdf-only-header {
-  display: none;
-}
-
-/* ========================================
-   PDF Export Loading
-   ======================================== */
-.pdf-loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.pdf-loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border);
-  border-top-color: var(--text-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-
-/* ========================================
-   Profile Selector (New)
-   ======================================== */
-.profile-selector-container {
-  max-width: 900px;
-  /* Wider for 3 cards */
-  margin: 40px auto;
-  text-align: center;
-}
-
-.profile-selector-header h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.profile-selector-header p {
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
-}
-
-.profile-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 0 10px;
-}
-
-.profile-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-  /* Prepare for hover border */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.profile-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Card Accents */
-.profile-card-accent-a {
-  border-top: 5px solid #8b5cf6;
-}
-
-/* Purple */
-.profile-card-accent-b {
-  border-top: 5px solid #f97316;
-}
-
-/* Orange */
-.profile-card-accent-c {
-  border-top: 5px solid #10b981;
-}
-
-/* Green */
-
-.profile-card-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  background: #f3f4f6;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.profile-card-desc {
+.bubble {
+  max-width: 90%;
+  padding: 16px;
+  border-radius: 20px;
   font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.profile-card-features {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.5rem 0;
-  text-align: left;
-  width: 100%;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 12px;
+.bubble-ai {
+  background: #f4f4f5;
+  color: #374151;
+  align-self: flex-start;
+  border-top-left-radius: 4px;
 }
 
-.profile-card-features li {
-  margin-bottom: 6px;
-  padding-left: 20px;
+.bubble-user {
+  background: white;
+  border: 1px solid #efefef;
+  color: #1a1a1a;
+  align-self: flex-end;
+  border-top-right-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.bubble-sub {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.chat-input-area {
+  padding: 16px;
+  border-top: 1px solid #efefef;
+}
+
+.chat-input-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.profile-card-features li::before {
-  content: "•";
-  position: absolute;
-  left: 8px;
-  color: #6b7280;
-}
-
-.btn-select {
+.chat-input {
   width: 100%;
-  padding: 10px;
+  background: #f9fafb;
   border: none;
-  border-radius: 8px;
-  background: var(--primary-color);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 12px 16px;
+  padding-right: 48px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  outline: none;
   transition: background 0.2s;
 }
 
-.btn-select:hover {
-  background: #4f46e5;
+.chat-input:focus {
+  background: white;
+  box-shadow: 0 0 0 1px #e5e7eb inset;
+}
+
+.chat-send-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* Right Side: Setup Form */
+.form-content {
+  flex: 1;
+  background: #fcfcfc;
+  overflow-y: auto;
+  padding: 48px 24px;
+}
+
+.form-card {
+  max-width: 768px;
+  margin: 0 auto;
+  background: white;
+  border: 1px solid #efefef;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.form-card-header {
+  margin-bottom: 40px;
+}
+
+.form-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.form-card-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.setup-form .section-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-field-clean {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: transparent;
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-field-clean:focus {
+  border-bottom-color: #1a1a1a;
+}
+
+.btn-submit-form {
+  width: 100%;
+  background: #1a1a1a;
+  color: white;
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.btn-submit-form:hover {
+  background: black;
+  transform: translateY(-1px);
 }
 
 /* ========================================
-   Shared UI Elements
+   4. Assets Tab (Dashboard Layout)
    ======================================== */
-.app-header-shared {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.app-header-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-/* Apply to Dashboard Header */
-.dashboard-header {
-  /* Inherit shared styles via class in HTML or duplicate props here if structure differs */
-  /* Let's make dashboard-header match exactly */
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dashboard-header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-/* Chat Header (New) - to be added in ChatInterface if needed, or Main Layout */
-.chat-header-styled {
-  padding: 24px 20px 16px;
-  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-  margin-bottom: 0;
-  text-align: center;
+.assets-layout {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 24px;
   background: white;
 }
 
-.chat-header-title {
-  font-size: 1.25rem;
+.dashboard-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 48px;
+}
+
+.dashboard-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dashboard-title span {
+  color: #94a3b8;
+  font-weight: 300;
+  font-size: 1rem;
+  margin-left: 8px;
+}
+
+/* KPI Cards */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.kpi-card {
+  padding: 32px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+}
+
+.kpi-label {
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+.kpi-label span {
+  opacity: 0.5;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.kpi-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 32px;
+}
+
+.card-title span {
+  color: #94a3b8;
+  font-weight: 400;
+  font-size: 0.875rem;
+  margin-left: 8px;
+}
+
+.col-8 {
+  grid-column: span 8;
+}
+
+.col-4 {
+  grid-column: span 4;
+}
+
+.col-12 {
+  grid-column: span 12;
+}
+
+/* Table Section */
+.table-section {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+}
+
+.table-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.table-header h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+thead th {
+  background: #f8fafc;
+  padding: 16px 32px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tbody td {
+  padding: 20px 32px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+tr:hover td {
+  background: #f8fafc;
+}
+
+/* Icons */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+@media (max-width: 1024px) {
+  .charts-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-sidebar {
+    width: 100%;
+    height: 500px;
+  }
+
+  .input-layout {
+    flex-direction: column;
+  }
 }

@@ -11,9 +11,9 @@ const API_URL = '/api/chat';
 const GROQ_API_KEY = '';
 
 const MODELS = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-70b-versatile',
-    'mixtral-8x7b-32768'
+    'qwen/qwen-2.5-32b',
+    'moonshotai/kimi-k2-instruct-0905',
+    'meta-llama/llama-4-scout-17b-16e-instruct'
 ];
 
 // Context is handled by the caller (chatLogic.js)

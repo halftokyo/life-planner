@@ -9,32 +9,32 @@ import { formatCurrency } from '../engine/calculator.js';
  * @returns {HTMLElement} 表单元素
  */
 export function createEventsForm(events, onAdd, onRemove, onUpdate) {
-    const container = document.createElement('div');
-    container.className = 'events-form';
+  const container = document.createElement('div');
+  container.className = 'events-form';
 
-    // 添加新事件的表单
-    const addForm = createAddEventForm(onAdd);
-    container.appendChild(addForm);
+  // 添加新事件的表单
+  const addForm = createAddEventForm(onAdd);
+  container.appendChild(addForm);
 
-    // 事件列表
-    const listContainer = document.createElement('div');
-    listContainer.className = 'events-list';
-    listContainer.id = 'events-list';
+  // 事件列表
+  const listContainer = document.createElement('div');
+  listContainer.className = 'events-list';
+  listContainer.id = 'events-list';
 
-    renderEventsList(listContainer, events, onRemove, onUpdate);
-    container.appendChild(listContainer);
+  renderEventsList(listContainer, events, onRemove, onUpdate);
+  container.appendChild(listContainer);
 
-    return container;
+  return container;
 }
 
 /**
  * 创建添加事件的表单
  */
 function createAddEventForm(onAdd) {
-    const form = document.createElement('div');
-    form.className = 'add-event-form';
+  const form = document.createElement('div');
+  form.className = 'add-event-form';
 
-    form.innerHTML = `
+  form.innerHTML = `
     <h3 class="form-group-title">新規イベント追加</h3>
     <div class="add-event-fields">
       <div class="form-field">
@@ -60,79 +60,79 @@ function createAddEventForm(onAdd) {
     </button>
   `;
 
-    // 添加按钮事件
-    setTimeout(() => {
-        const btn = form.querySelector('#add-event-btn');
-        btn.addEventListener('click', () => {
-            const year = parseInt(document.getElementById('new-event-year').value);
-            const amount = parseFloat(document.getElementById('new-event-amount').value);
-            const duration = parseInt(document.getElementById('new-event-duration').value);
-            const note = document.getElementById('new-event-note').value;
+  // 添加按钮事件
+  setTimeout(() => {
+    const btn = form.querySelector('#add-event-btn');
+    btn.addEventListener('click', () => {
+      const year = parseInt(document.getElementById('new-event-year').value);
+      const amount = parseFloat(document.getElementById('new-event-amount').value);
+      const duration = parseInt(document.getElementById('new-event-duration').value);
+      const note = document.getElementById('new-event-note').value;
 
-            if (year && amount && duration) {
-                onAdd({ year, amount, duration, note: note || '未指定' });
-                // 重置表单
-                document.getElementById('new-event-note').value = '';
-            }
-        });
-    }, 0);
+      if (year && amount && duration) {
+        onAdd({ year, amount, duration, note: note || '未指定' });
+        // 重置表单
+        document.getElementById('new-event-note').value = '';
+      }
+    });
+  }, 0);
 
-    return form;
+  return form;
 }
 
 /**
  * 渲染事件列表
  */
 export function renderEventsList(container, events, onRemove, onUpdate) {
-    // 按年份排序
-    const sortedEvents = [...events].sort((a, b) => a.year - b.year);
+  // 按年份排序
+  const sortedEvents = [...events].sort((a, b) => a.year - b.year);
 
-    // 分类：支出和收入
-    const expenses = sortedEvents.filter(e => e.amount < 0);
-    const incomes = sortedEvents.filter(e => e.amount > 0);
+  // 分类：支出和收入
+  const expenses = sortedEvents.filter(e => e.amount < 0);
+  const incomes = sortedEvents.filter(e => e.amount > 0);
 
-    container.innerHTML = `
+  container.innerHTML = `
     <div class="events-section">
       <h3 class="events-section-title expense-title">
-        <span class="icon">📉</span> 支出イベント（${expenses.length}件）
+        支出イベント（${expenses.length}件）
       </h3>
       <div class="events-grid" id="expense-events"></div>
     </div>
     <div class="events-section">
       <h3 class="events-section-title income-title">
-        <span class="icon">📈</span> 収入イベント（${incomes.length}件）
+        収入イベント（${incomes.length}件）
       </h3>
       <div class="events-grid" id="income-events"></div>
     </div>
   `;
 
-    const expenseGrid = container.querySelector('#expense-events');
-    const incomeGrid = container.querySelector('#income-events');
+  const expenseGrid = container.querySelector('#expense-events');
+  const incomeGrid = container.querySelector('#income-events');
 
-    expenses.forEach((event, idx) => {
-        const originalIdx = events.indexOf(event);
-        expenseGrid.appendChild(createEventCard(event, originalIdx, onRemove, onUpdate, 'expense'));
-    });
+  expenses.forEach((event, idx) => {
+    const originalIdx = events.indexOf(event);
+    expenseGrid.appendChild(createEventCard(event, originalIdx, onRemove, onUpdate, 'expense'));
+  });
 
-    incomes.forEach((event, idx) => {
-        const originalIdx = events.indexOf(event);
-        incomeGrid.appendChild(createEventCard(event, originalIdx, onRemove, onUpdate, 'income'));
-    });
+  incomes.forEach((event, idx) => {
+    const originalIdx = events.indexOf(event);
+    incomeGrid.appendChild(createEventCard(event, originalIdx, onRemove, onUpdate, 'income'));
+  });
 }
 
 /**
  * 创建事件卡片
  */
 function createEventCard(event, index, onRemove, onUpdate, type) {
-    const card = document.createElement('div');
-    card.className = `event-card ${type}`;
-    card.dataset.index = index;
+  const card = document.createElement('div');
+  card.className = `event-card ${type}`;
+  card.dataset.index = index;
 
-    const endYear = event.year + event.duration - 1;
-    const yearRange = event.duration > 1 ? `${event.year} - ${endYear}` : `${event.year}`;
-    const totalAmount = event.amount * event.duration;
+  const endYear = event.year + event.duration - 1;
+  const yearRange = event.duration > 1 ? `${event.year} - ${endYear}` : `${event.year}`;
+  const totalAmount = event.amount * event.duration;
 
-    card.innerHTML = `
+  card.innerHTML = `
     <div class="event-header">
       <span class="event-year">${yearRange}</span>
       <button class="event-delete" data-index="${index}" title="削除">×</button>
@@ -147,24 +147,24 @@ function createEventCard(event, index, onRemove, onUpdate, type) {
     ` : ''}
   `;
 
-    // 删除按钮事件
-    setTimeout(() => {
-        const deleteBtn = card.querySelector('.event-delete');
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            onRemove(index);
-        });
-    }, 0);
+  // 删除按钮事件
+  setTimeout(() => {
+    const deleteBtn = card.querySelector('.event-delete');
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onRemove(index);
+    });
+  }, 0);
 
-    return card;
+  return card;
 }
 
 /**
  * 更新事件列表显示
  */
 export function updateEventsList(events, onRemove, onUpdate) {
-    const container = document.getElementById('events-list');
-    if (container) {
-        renderEventsList(container, events, onRemove, onUpdate);
-    }
+  const container = document.getElementById('events-list');
+  if (container) {
+    renderEventsList(container, events, onRemove, onUpdate);
+  }
 }

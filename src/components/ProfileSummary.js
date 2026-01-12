@@ -8,7 +8,7 @@ export function createProfileSummary(setup) {
     // Icon
     const icon = document.createElement('div');
     icon.className = 'notion-callout-icon';
-    icon.textContent = '📝'; // Notion style emoji
+    icon.textContent = '';
     container.appendChild(icon);
 
     // Content

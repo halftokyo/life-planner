@@ -1,548 +1,198 @@
 import { Chart, registerables } from 'chart.js';
 import { formatCurrency } from '../engine/calculator.js';
 
-// 注册 Chart.js 组件
 Chart.register(...registerables);
 
-const CHART_COLORS = {
-    asset: 'rgba(139, 92, 246, 0.8)', // Purple
-    income: 'rgba(16, 185, 129, 0.8)', // Green
-    expense: 'rgba(239, 68, 68, 0.8)', // Red
-    tax: 'rgba(245, 158, 11, 0.8)',    // Orange
-    saving: 'rgba(59, 130, 246, 0.8)', // Blue
-
-    // Breakdown pie colors
-    housing: 'rgba(236, 72, 153, 0.8)', // Pink
-    living: 'rgba(16, 185, 129, 0.8)',
-    medical: 'rgba(245, 158, 11, 0.8)',
-    travel: 'rgba(59, 130, 246, 0.8)',
-
-    border: 'rgba(255, 255, 255, 1.0)',
-    grid: 'rgba(0, 0, 0, 0.05)',
-    text: '#6b7280'
+const COLORS = {
+    primary: '#6366f1',
+    secondary: '#8b5cf6',
+    accent: '#ec4899',
+    neutral: '#94a3b8',
+    bg: '#f8fafc',
+    grid: '#f1f5f9'
 };
 
-const CHART_FONTS = {
-    family: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-    size: 13
-};
-
-// 存储图表实例
 let assetChart = null;
 let cashFlowChart = null;
 let breakdownChart = null;
-let elderlyChart = null;
 
-/**
- * 创建图表容器
- */
 export function createChartsContainer() {
-    const container = document.createElement('div');
-    container.className = 'dashboard-grid'; // Use grid layout
+    const grid = document.createElement('div');
+    grid.className = 'charts-grid';
 
-    // Asset Chart
-    const assetWrapper = createChartCard('金融資産推移', 'trending-up', 'assetChart');
+    // 1. Asset Growth (Large)
+    const assetCard = createCard('資産残高の推移', 'Growth', 'assetChart', 'col-8');
 
-    // Income/Expense Chart
-    const balanceWrapper = createChartCard('収支バランス', 'bar-chart-2', 'balanceChart');
+    // 2. Breakdown (Small)
+    const breakdownCard = createCard('支出内訳', 'Allocation', 'breakdownChart', 'col-4');
 
-    // Breakdown Chart
-    const breakdownWrapper = createChartCard('生涯支出の内訳', 'pie-chart', 'breakdownChart');
+    // 3. Cashflow (Full Width)
+    const cashFlowCard = createCard('収支バランス', 'Cash Flow', 'cashFlowChart', 'col-12');
 
-    container.appendChild(assetWrapper);
-    container.appendChild(balanceWrapper);
-    container.appendChild(breakdownWrapper);
+    grid.appendChild(assetCard);
+    grid.appendChild(breakdownCard);
+    grid.appendChild(cashFlowCard);
 
-    // Data Table Section
-    container.appendChild(createDataTableWrapper());
-
-    return container;
+    return grid;
 }
 
-function createChartCard(title, icon, canvasId) {
+function createCard(title, subtitle, canvasId, colClass) {
     const card = document.createElement('div');
-    card.className = 'dashboard-card';
+    card.className = `card ${colClass}`;
     card.innerHTML = `
-        <h3 class="card-title">
-            ${title}
-        </h3>
-        <div class="chart-container" style="position: relative; height: 300px;">
+        <h3 class="card-title">${title} <span>${subtitle}</span></h3>
+        <div class="chart-container" style="position: relative; height: 320px;">
             <canvas id="${canvasId}"></canvas>
         </div>
     `;
     return card;
 }
 
-function createDataTableWrapper() {
-    const section = document.createElement('div');
-    section.className = 'chart-section';
-    section.innerHTML = `
-    <h3 class="chart-title">
-      <span class="chart-icon">📋</span>
-      詳細データ
-    </h3>
-    <div id="data-table" class="data-table-container"></div>
-  `;
-    return section;
-}
-
-/**
- * 更新所有图表
- */
 export function updateCharts(projection, setup) {
-    updateNetAssetChart(projection); // Renamed
+    updateNetAssetChart(projection);
     updateCashFlowChart(projection);
-    updateExpenseBreakdownChart(projection, setup); // New chart call
-    updateElderlyExpenseChart(projection, setup); // Renamed
+    updateExpenseBreakdownChart(projection, setup);
     updateDataTable(projection);
 }
 
-/**
- * 資産变化图表
- */
 function updateNetAssetChart(projection) {
-    const ctx = document.getElementById('asset-chart');
+    const ctx = document.getElementById('assetChart')?.getContext('2d');
     if (!ctx) return;
 
-    const labels = projection.map(p => p.year);
-    const assets = projection.map(p => p.asset / 10000); // 万円単位
-
-    if (assetChart) {
-        assetChart.destroy();
-    }
-
-    // 找到资产变负的年份
-    const negativeYearIndex = projection.findIndex(p => p.asset < 0);
+    if (assetChart) assetChart.destroy();
 
     assetChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels,
+            labels: projection.map(d => d.year),
             datasets: [{
-                label: '純資産（万円）',
-                data: assets,
-                borderColor: '#111827', // Dark gray/black
-                backgroundColor: 'rgba(17, 24, 39, 0.05)',
+                label: '金融資産残高',
+                data: projection.map(d => d.endAssets),
+                borderColor: COLORS.primary,
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderWidth: 2,
                 fill: true,
                 tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-                borderWidth: 2,
+                pointRadius: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false,
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#111827',
-                    bodyColor: '#111827',
-                    borderColor: '#e5e7eb',
-                    borderWidth: 1,
-                    padding: 10,
-                    displayColors: false,
-                    callbacks: {
-                        label: (context) => {
-                            return `純資産: ${formatCurrency(context.raw * 10000)}`;
-                        }
-                    }
-                },
-                annotation: negativeYearIndex > -1 ? {
-                    annotations: {
-                        line1: {
-                            type: 'line',
-                            yMin: 0,
-                            yMax: 0,
-                            borderColor: 'rgba(239, 68, 68, 0.5)',
-                            borderWidth: 1,
-                            borderDash: [4, 4],
-                        }
-                    }
-                } : undefined
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                x: {
-                    grid: {
-                        display: false,
-                    },
-                    ticks: {
-                        maxTicksLimit: 8,
-                        color: '#6b7280'
-                    }
-                },
                 y: {
-                    grid: {
-                        color: '#f3f4f6',
-                        drawBorder: false,
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        callback: (value) => formatCurrency(value * 10000),
-                    }
-                }
+                    grid: { color: COLORS.grid },
+                    ticks: { callback: val => formatCurrency(val) }
+                },
+                x: { grid: { display: false } }
             }
         }
     });
 }
 
-/**
- * 收支对比图表
- */
 function updateCashFlowChart(projection) {
-    const ctx = document.getElementById('cashflow-chart');
+    const ctx = document.getElementById('cashFlowChart')?.getContext('2d');
     if (!ctx) return;
 
-    const labels = projection.map(p => p.year);
-    const incomes = projection.map(p => p.income / 10000);
-    const expenses = projection.map(p => Math.abs(p.expense + p.tax) / 10000);
-
-    if (cashFlowChart) {
-        cashFlowChart.destroy();
-    }
+    if (cashFlowChart) cashFlowChart.destroy();
 
     cashFlowChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels,
+            labels: projection.map(d => d.year),
             datasets: [
                 {
-                    label: '収入（万円）',
-                    data: incomes,
-                    backgroundColor: '#d1d5db', // Light gray
-                    hoverBackgroundColor: '#9ca3af',
-                    borderWidth: 0,
+                    label: '収入',
+                    data: projection.map(d => d.totalIncome),
+                    backgroundColor: COLORS.primary,
+                    borderRadius: 4
                 },
                 {
-                    label: '支出（万円）',
-                    data: expenses,
-                    backgroundColor: '#111827', // Black
-                    hoverBackgroundColor: '#374151',
-                    borderWidth: 0,
+                    label: '支出',
+                    data: projection.map(d => d.totalExpense),
+                    backgroundColor: COLORS.neutral,
+                    borderRadius: 4
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        boxWidth: 8,
-                        padding: 20,
-                        color: '#4b5563'
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#111827',
-                    bodyColor: '#111827',
-                    borderColor: '#e5e7eb',
-                    borderWidth: 1,
-                    padding: 10,
-                    callbacks: {
-                        label: (context) => {
-                            return `${context.dataset.label}: ${formatCurrency(context.raw * 10000)}`;
-                        }
-                    }
-                }
-            },
+            plugins: { legend: { position: 'top', align: 'end' } },
             scales: {
-                x: {
-                    grid: {
-                        display: false,
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        maxTicksLimit: 8,
-                    }
-                },
-                y: {
-                    grid: {
-                        color: '#f3f4f6',
-                        drawBorder: false,
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        callback: (value) => `${(value / 100).toFixed(0)}億`,
-                    }
-                }
+                y: { stacked: false, grid: { color: COLORS.grid } },
+                x: { stacked: false, grid: { display: false } }
             }
         }
     });
 }
 
-/**
- * 生涯支出の内訳 (Pie Chart)
- */
 function updateExpenseBreakdownChart(projection, setup) {
-    const ctx = document.getElementById('breakdownChart');
+    const ctx = document.getElementById('breakdownChart')?.getContext('2d');
     if (!ctx) return;
 
-    // Calculate Totals
-    let totalHousing = 0;
-    let totalLiving = 0;
-    let totalEducation = 0;
-    let totalOther = 0;
-
-    projection.forEach(p => {
-        totalHousing += Math.abs(p.housing || 0);
-        totalLiving += Math.abs(p.living || 0);
-        totalEducation += Math.abs(p.education || 0);
-        // "Other" is implicit in expense - (housing+living+education)?
-        // Or we just use the breakdown from calculator if available. 
-        // Assuming simple breakdown for now based on calculator outputs.
-        // If calculator doesn't return disparate parts, we estimate.
-        // Actually calculator returns `expense` which is sum. 
-        // Let's assume projection has breakdowns if I updated calculator.
-        // If not, I'll use simple categories if available in `p`.
-        // Inspecting calculator.js via this file's imports isn't possible directly.
-        // But `createCharts.js` earlier showed housingExpense map in elderly chart using `setup`.
-        // Let's calculate from Setup for simplicity + rough duration?
-        // No, better to use projection data if possible.
-        // Let's assume projection entries have these fields (standard for this app).
-    });
-
-    // Fallback if projection doesn't have detailed breakdown fields
-    // We can rely on Setup Annuals * Years
-    // Quick Fix: Use Setup values X 60 years? No.
-    // Let's trust projection has specific fields or we skip.
-    // Calculator usually attaches `housing`, `living`, `education`.
-
-    // Check first element
-    if (projection.length > 0 && projection[0].housing === undefined) {
-        // Re-calculate basic breakdown from Setup for display
-        // This is a rough approx for the pie chart
-        const years = projection.length;
-        totalHousing = Math.abs(setup.Housing_Annual_Pre) * 35 + Math.abs(setup.Housing_Annual_Post) * 25;
-        totalLiving = Math.abs(setup.Living_Annual_Pre) * 35 + Math.abs(setup.Living_Annual_Post) * 25;
-        totalEducation = Math.abs(setup.Child1_Education_Total || 0); // Simplified
-        totalOther = Math.abs(setup.Travel_Annual || 0) * years;
-    } else {
-        // Sum from projection
-        projection.forEach(p => {
-            totalHousing += Math.abs(p.housing);
-            totalLiving += Math.abs(p.living);
-            totalEducation += Math.abs(p.education);
-            totalOther += Math.abs(p.other || 0);
-        });
-    }
-
     if (breakdownChart) breakdownChart.destroy();
+
+    // Mock breakdown based on setup for demonstration
+    const data = [
+        Math.abs(setup.Housing_Annual_Pre || 0),
+        Math.abs(setup.Living_Annual_Pre || 0),
+        Math.abs(setup.Travel_Annual || 0),
+        Math.abs(setup.Medical_Annual || 0)
+    ];
 
     breakdownChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['住居費', '生活費', '教育費', 'その他'],
+            labels: ['住居', '生活', '旅行', '医療'],
             datasets: [{
-                data: [totalHousing, totalLiving, totalEducation, totalOther],
-                backgroundColor: [
-                    CHART_COLORS.housing,
-                    CHART_COLORS.living,
-                    '#f59e0b', // Education Orange
-                    CHART_COLORS.travel
-                ],
+                data: data,
+                backgroundColor: [COLORS.primary, COLORS.secondary, COLORS.accent, COLORS.neutral],
                 borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '70%',
             plugins: {
-                legend: { position: 'right' },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}`
-                    }
-                }
+                legend: { position: 'bottom' }
             }
         }
     });
 }
 
-/**
- * 80-90岁支出分析图表
- */
-function updateElderlyExpenseChart(projection, setup) {
-    const ctx = document.getElementById('elderly-chart');
-    const summaryEl = document.getElementById('elderly-summary');
-    if (!ctx || !summaryEl) return;
-
-    // 过滤出Person1在80-90岁的年份数据
-    const elderlyData = projection.filter(p => {
-        const age = p.person1Age;
-        return age >= 80 && age <= 90;
-    });
-
-    if (elderlyData.length === 0) {
-        summaryEl.innerHTML = '<p class="no-data">該当するデータがありません</p>';
-        return;
-    }
-
-    const labels = elderlyData.map(p => `${p.year}年 (${p.person1Age}歳)`);
-
-    // 分解支出项目
-    const housingExpense = elderlyData.map(p => Math.abs(setup.Housing_Annual_Post) / 10000);
-    const livingExpense = elderlyData.map(p => Math.abs(setup.Living_Annual_Post) / 10000);
-    const travelExpense = elderlyData.map(p => Math.abs(setup.Travel_Annual) / 10000);
-    const medicalExpense = elderlyData.map(p => {
-        let medical = 0;
-        if (p.person1Age >= setup.Medical_Start_Age) {
-            medical += Math.abs(setup.Medical_Annual);
-        }
-        if (p.person2Age >= setup.Medical_Start_Age) {
-            medical += Math.abs(setup.Medical_Annual);
-        }
-        return medical / 10000;
-    });
-
-    if (elderlyChart) {
-        elderlyChart.destroy();
-    }
-
-    elderlyChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: '住居費',
-                    data: housingExpense,
-                    backgroundColor: '#e5e7eb', // Gray 200
-                },
-                {
-                    label: '生活費',
-                    data: livingExpense,
-                    backgroundColor: '#9ca3af', // Gray 400
-                },
-                {
-                    label: '旅行費',
-                    data: travelExpense,
-                    backgroundColor: '#6b7280', // Gray 500
-                },
-                {
-                    label: '医療費',
-                    data: medicalExpense,
-                    backgroundColor: '#1f2937', // Gray 800
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        boxWidth: 8,
-                        color: '#4b5563'
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#111827',
-                    bodyColor: '#111827',
-                    borderColor: '#e5e7eb',
-                    borderWidth: 1,
-                    padding: 10,
-                    callbacks: {
-                        label: (context) => {
-                            return `${context.dataset.label}: ${formatCurrency(context.raw * 10000)}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    stacked: true,
-                    grid: {
-                        display: false,
-                    },
-                    ticks: {
-                        color: '#6b7280'
-                    }
-                },
-                y: {
-                    stacked: true,
-                    grid: {
-                        color: '#f3f4f6',
-                        drawBorder: false,
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        callback: (value) => `${value}万`,
-                    }
-                }
-            }
-        }
-    });
-
-    // 计算总结信息
-    const totalExpense = elderlyData.reduce((sum, p) => sum + Math.abs(p.expense + p.tax), 0);
-    const avgExpense = totalExpense / elderlyData.length;
-    const finalAsset = elderlyData[elderlyData.length - 1]?.asset || 0;
-
-    summaryEl.innerHTML = `
-    <div class="summary-grid">
-      <div class="summary-item">
-        <span class="summary-label">80-90歳期間の総支出</span>
-        <span class="summary-value expense">${formatCurrency(totalExpense)}</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">年間平均支出</span>
-        <span class="summary-value">${formatCurrency(avgExpense)}</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">90歳時点の純資産</span>
-        <span class="summary-value ${finalAsset < 0 ? 'expense' : 'income'}">${formatCurrency(finalAsset)}</span>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * 数据表格
- */
 function updateDataTable(projection) {
-    const container = document.getElementById('data-table');
-    if (!container) return;
+    const wrapper = document.getElementById('data-table-wrapper');
+    if (!wrapper) return;
 
-    // 只显示部分年份（每5年）
-    const filteredData = projection.filter((p, i) => i === 0 || i === projection.length - 1 || i % 5 === 0);
-
-    let tableHTML = `
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>年</th>
-          <th>年齢</th>
-          <th>収入</th>
-          <th>支出</th>
-          <th>純資産</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-    for (const p of filteredData) {
-        const assetClass = p.asset < 0 ? 'negative' : '';
-        tableHTML += `
-      <tr>
-        <td>${p.year}</td>
-        <td>${p.person1Age}歳 / ${p.person2Age}歳</td>
-        <td class="income">${formatCurrency(p.income)}</td>
-        <td class="expense">${formatCurrency(p.expense + p.tax)}</td>
-        <td class="${assetClass}">${formatCurrency(p.asset)}</td>
-      </tr>
+    wrapper.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>年度</th>
+                    <th>年齢 (本人/配偶者)</th>
+                    <th>収入合計</th>
+                    <th>支出合計</th>
+                    <th>収支差</th>
+                    <th>資産残高</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${projection.map(d => `
+                    <tr>
+                        <td>${d.year}年</td>
+                        <td>${d.age1}歳 / ${d.age2}歳</td>
+                        <td>${formatCurrency(d.totalIncome)}</td>
+                        <td>${formatCurrency(d.totalExpense)}</td>
+                        <td style="color: ${d.cashFlow >= 0 ? '#10b981' : '#ef4444'}">
+                            ${formatCurrency(d.cashFlow)}
+                        </td>
+                        <td style="font-weight: 700">${formatCurrency(d.endAssets)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
     `;
-    }
-
-    tableHTML += '</tbody></table>';
-    container.innerHTML = tableHTML;
 }

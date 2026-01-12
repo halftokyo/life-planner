@@ -1,127 +1,74 @@
 import { setupFields } from '../data/defaults.js';
-import { formatCurrency, formatPercent } from '../engine/calculator.js';
+import { formatCurrency } from '../engine/calculator.js';
 
-/**
- * 生成设置表单
- * @param {object} setup - 当前设置
- * @param {function} onChange - 值变化回调
- * @returns {HTMLElement} 表单元素
- */
-export function createSetupForm(setup, onChange) {
-    const container = document.createElement('div');
-    container.className = 'setup-form';
+export function createSetupForm(state, onUpdate) {
+    const card = document.createElement('div');
+    card.className = 'form-card';
 
-    for (const group of setupFields) {
+    // Header
+    card.innerHTML = `
+        <div class="form-card-header">
+            <h2 class="form-card-title">基本設定</h2>
+            <p class="form-card-subtitle">シミュレーションの前提条件を設定します</p>
+        </div>
+        <div class="setup-form"></div>
+    `;
+
+    const form = card.querySelector('.setup-form');
+
+    // Grouping logic (using defaults.js groups)
+    setupFields.forEach(group => {
         const groupEl = document.createElement('div');
-        groupEl.className = 'form-group';
+        groupEl.style.marginBottom = '48px';
 
-        const groupTitle = document.createElement('h3');
-        groupTitle.className = 'form-group-title';
-        groupTitle.textContent = group.group;
-        groupEl.appendChild(groupTitle);
+        groupEl.innerHTML = `<span class="section-label">${group.group}</span>`;
 
-        const fieldsContainer = document.createElement('div');
-        fieldsContainer.className = 'form-fields';
+        const grid = document.createElement('div');
+        grid.className = 'form-row';
 
-        for (const field of group.fields) {
-            const fieldEl = createField(field, setup[field.key], (value) => {
-                onChange(field.key, value);
-            });
-            fieldsContainer.appendChild(fieldEl);
-        }
+        group.fields.forEach(field => {
+            const block = document.createElement('div');
+            block.className = 'input-block';
 
-        groupEl.appendChild(fieldsContainer);
-        container.appendChild(groupEl);
-    }
+            const label = document.createElement('label');
+            label.className = 'input-label';
+            label.textContent = field.label;
 
-    return container;
-}
+            const input = document.createElement('input');
+            input.type = field.type === 'currency' ? 'text' : field.type;
+            input.className = 'input-field-clean';
+            input.value = state.setup[field.key];
 
-/**
- * 创建单个表单字段
- */
-function createField(field, value, onChange) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'form-field';
-
-    const label = document.createElement('label');
-    label.className = 'form-label';
-    label.textContent = field.label;
-    wrapper.appendChild(label);
-
-    const inputWrapper = document.createElement('div');
-    inputWrapper.className = 'input-wrapper';
-
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.className = 'form-input';
-    input.id = `field-${field.key}`;
-
-    // 根据类型设置值和步进
-    if (field.type === 'percent') {
-        input.value = (value * 100).toFixed(1);
-        input.step = '0.1';
-        input.addEventListener('input', (e) => {
-            onChange(parseFloat(e.target.value) / 100);
-        });
-    } else if (field.type === 'currency') {
-        input.value = value;
-        input.step = '10000';
-        input.addEventListener('input', (e) => {
-            onChange(parseFloat(e.target.value) || 0);
-        });
-    } else {
-        input.value = value;
-        input.step = '1';
-        input.addEventListener('input', (e) => {
-            onChange(parseInt(e.target.value) || 0);
-        });
-    }
-
-    inputWrapper.appendChild(input);
-
-    // 添加单位标签
-    if (field.unit || field.type === 'percent' || field.type === 'currency') {
-        const unitLabel = document.createElement('span');
-        unitLabel.className = 'input-unit';
-        if (field.type === 'percent') {
-            unitLabel.textContent = '%';
-        } else if (field.type === 'currency') {
-            unitLabel.textContent = '円';
-        } else {
-            unitLabel.textContent = field.unit;
-        }
-        inputWrapper.appendChild(unitLabel);
-    }
-
-    wrapper.appendChild(inputWrapper);
-
-    // 显示当前值的格式化版本
-    if (field.type === 'currency') {
-        const formattedValue = document.createElement('div');
-        formattedValue.className = 'formatted-value';
-        formattedValue.textContent = formatCurrency(value);
-        wrapper.appendChild(formattedValue);
-    }
-
-    return wrapper;
-}
-
-/**
- * 更新表单显示的格式化值
- */
-export function updateFormattedValues(setup) {
-    for (const group of setupFields) {
-        for (const field of group.fields) {
-            if (field.type === 'currency') {
-                const wrapper = document.querySelector(`#field-${field.key}`)?.closest('.form-field');
-                if (wrapper) {
-                    const formatted = wrapper.querySelector('.formatted-value');
-                    if (formatted) {
-                        formatted.textContent = formatCurrency(setup[field.key]);
-                    }
+            // Sync logic
+            input.addEventListener('change', () => {
+                let val = input.value;
+                if (field.type === 'number' || field.type === 'currency' || field.type === 'percent') {
+                    val = parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
                 }
-            }
-        }
-    }
+                onUpdate(field.key, val);
+            });
+
+            block.appendChild(label);
+            block.appendChild(input);
+            grid.appendChild(block);
+        });
+
+        groupEl.appendChild(grid);
+        form.appendChild(groupEl);
+    });
+
+    // Add Submit/Recalculate Button at bottom
+    const footer = document.createElement('div');
+    footer.style.marginTop = '40px';
+    footer.innerHTML = `
+        <button class="btn-submit-form">設定を更新して再試算</button>
+    `;
+    footer.querySelector('button').addEventListener('click', () => {
+        // Trigger results tab explicitly if needed
+        const resultsTab = document.querySelector('[data-tab="results"]');
+        if (resultsTab) resultsTab.click();
+    });
+    form.appendChild(footer);
+
+    return card;
 }
