@@ -1,7 +1,7 @@
 import { setupFields } from '../data/defaults.js';
 import { formatCurrency } from '../engine/calculator.js';
 
-export function createSetupForm(state, onUpdate) {
+export function createSetupForm(state, onUpdate, onProfileSelect) {
     const card = document.createElement('div');
     card.className = 'form-card';
 
@@ -11,8 +11,38 @@ export function createSetupForm(state, onUpdate) {
             <h2 class="form-card-title">基本設定</h2>
             <p class="form-card-subtitle">シミュレーションの前提条件を設定します</p>
         </div>
+
+        <!-- Quick Profile Selection -->
+        <div class="profile-strip-container" style="margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid #f1f5f9;">
+            <span class="section-label" style="margin-bottom: 12px; display: block;">クイックコース選択 (Quick Start)</span>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <button class="role-btn" data-role="A">
+                    <span class="role-id">Role A</span>
+                    <span class="role-name">共働き・高収入</span>
+                </button>
+                <button class="role-btn" data-role="B">
+                    <span class="role-id">Role B</span>
+                    <span class="role-name">標準世帯</span>
+                </button>
+                <button class="role-btn" data-role="C">
+                    <span class="role-id">Role C</span>
+                    <span class="role-name">片働き・堅実</span>
+                </button>
+            </div>
+        </div>
+
         <div class="setup-form"></div>
     `;
+
+    // Add inline styles for the buttons if needed, or I can add to main.css
+    // For now, let's use dataset and handle in main.jsx. 
+    // I'll add the event listeners here.
+    const btns = card.querySelectorAll('.role-btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (onProfileSelect) onProfileSelect(btn.dataset.role);
+        });
+    });
 
     const form = card.querySelector('.setup-form');
 

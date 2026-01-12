@@ -143,19 +143,30 @@ function renderInputTab(container, preSelectedProfileId) {
     layout.appendChild(formContent);
     container.appendChild(layout);
 
+    // AI Chat logic state
+    let chatHandle = null;
+
     // Refresh Form Helper
     const updateForm = () => {
         formContent.innerHTML = '';
-        const formCard = createSetupForm(state, (key, val) => {
-            state.setup[key] = val;
-            saveState();
-        });
+        const formCard = createSetupForm(
+            state,
+            (key, val) => {
+                state.setup[key] = val;
+                saveState();
+            },
+            (profileId) => {
+                if (chatHandle && chatHandle.engine) {
+                    chatHandle.engine.applyProfile(profileId);
+                }
+            }
+        );
         formContent.appendChild(formCard);
     };
     updateForm();
 
     // Init Chat Sidebar
-    const chatUI = createChatInterface(
+    chatHandle = createChatInterface(
         (key, value) => {
             // Apply updates from AI
             if (key === '__APPLY_PROFILE_EVENTS__') {
@@ -174,7 +185,7 @@ function renderInputTab(container, preSelectedProfileId) {
         preSelectedProfileId,
         { sidebarMode: true }
     );
-    chatSidebar.appendChild(chatUI);
+    chatSidebar.appendChild(chatHandle.container);
 }
 
 // --- Tab: Assets (Results) ---

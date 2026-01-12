@@ -83,5 +83,8 @@ export function createChatInterface(updateCallback, onComplete, preSelectedProfi
     // Start Engine
     engine.start(preSelectedProfileId);
 
-    return container;
+    return {
+        container,
+        engine
+    };
 }

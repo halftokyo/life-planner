@@ -560,3 +560,38 @@ tr:hover td {
     flex-direction: column;
   }
 }
+/* Role Selection Buttons */
+.role-btn {
+    background: white;
+    border: 1px solid #efefef;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.role-btn:hover {
+    border-color: #1a1a1a;
+    background: #fcfcfc;
+    transform: translateY(-1px);
+}
+
+.role-id {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-name {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1e293b;
+}
