@@ -4,11 +4,26 @@ export const PROFILES = {
         description: "世帯年収1300万円、私立教育、都心生活",
         setup: {
             Initial_Asset: 2000000,
-            Invest_Return: 0.05, // Assumed from context of affluent? Or keep user default? User Role B says 3%. Role A doesn't specify Invest Return in the prompt text explicitly? 
-            // Wait, Role A prompt: "Invest_Return" is NOT listed in the table provided in Step 430?
-            // Actually Role A part 1: "Invest_Return" is missing. Role B has 3%. Role C has 3%.
-            // I will assume 5% for A to match "High Return/Risk" usually associated, or stick to 3%? 
-            // In the truncation it might be missing. I'll use 5% as it was in the original default.
+            Invest_Return: 0.05,
+            Inflation: 0.02,
+
+            Person1_Birth_Year: 1985,
+            Person1_Salary_Start: 7500000,
+            Person1_Retire_Age: 65,
+            Person1_Pension_Start_Age: 65,
+            Person1_Pension_Income: 2000000,
+            Person1_Medical_Start_Age: 70,
+            Person1_Medical_Annual: -840000,
+
+            Person2_Birth_Year: 1987,
+            Person2_Salary_Start: 5500000,
+            Person2_Retire_Age: 65,
+            Person2_Pension_Start_Age: 65,
+            Person2_Pension_Income: 2000000,
+            Person2_Medical_Start_Age: 70,
+            Person2_Medical_Annual: -840000,
+
+            Child1_Birth_Year: 2021,
 
             Housing_Annual_Pre: -600000,
             Housing_Annual_Post: -480000,
@@ -19,47 +34,38 @@ export const PROFILES = {
             Income_Tax_Rate: 0.25,
             Pension_Tax_Rate: 0.15,
             Events_Tax_Rate: 0.30,
-
-            Person1_Salary_Start: 7500000,
-            Person2_Salary_Start: 5500000,
-
-            Pension_Income: 2000000,
-            Medical_Annual: -840000,
         },
         events: [
-            { Year: 2025, Amount: -2400000, Duration: 28, Name: '住宅ローン', Type: 'expense' },
-            { Year: 2029, Amount: -600000, Duration: 2, Name: 'Child1 小学補習', Type: 'expense' },
-            { Year: 2031, Amount: -800000, Duration: 3, Name: 'Child1 中学補習', Type: 'expense' },
-            { Year: 2034, Amount: -1000000, Duration: 3, Name: 'Child1 高校補習', Type: 'expense' },
-            { Year: 2038, Amount: -1000000, Duration: 1, Name: '大学入学時納税', Type: 'expense' },
-            { Year: 2038, Amount: -1477339, Duration: 1, Name: 'Child1 私立大学(初年度)', Type: 'expense' },
-            { Year: 2039, Amount: -1124476, Duration: 3, Name: 'Child1 私立大学(以降)', Type: 'expense' },
+            { year: 2025, amount: -2400000, duration: 28, note: '住宅ローン' },
+            { year: 2029, amount: -600000, duration: 2, note: 'Child1 小学補習' },
+            { year: 2031, amount: -800000, duration: 3, note: 'Child1 中学補習' },
+            { year: 2034, amount: -1000000, duration: 3, note: 'Child1 高校補習' },
+            { year: 2038, amount: -1000000, duration: 1, note: '大学入学時納税' },
+            { year: 2038, amount: -1477339, duration: 1, note: 'Child1 私立大学(初年度)' },
+            { year: 2039, amount: -1124476, duration: 3, note: 'Child1 私立大学(以降)' },
 
-            { Year: 2032, Amount: -600000, Duration: 2, Name: 'Child2 小学補習', Type: 'expense' },
-            { Year: 2034, Amount: -800000, Duration: 3, Name: 'Child2 中学補習', Type: 'expense' },
-            { Year: 2037, Amount: -1200000, Duration: 3, Name: 'Child2 高校補習', Type: 'expense' },
-            { Year: 2041, Amount: -817800, Duration: 1, Name: 'Child2 国立大学(初年度)', Type: 'expense' },
-            { Year: 2042, Amount: -535800, Duration: 3, Name: 'Child2 国立大学(以降)', Type: 'expense' },
+            { year: 2032, amount: -600000, duration: 2, note: 'Child2 小学補習' },
+            { year: 2034, amount: -800000, duration: 3, note: 'Child2 中学補習' },
+            { year: 2037, amount: -1200000, duration: 3, note: 'Child2 高校補習' },
+            { year: 2041, amount: -817800, duration: 1, note: 'Child2 国立大学(初年度)' },
+            { year: 2042, amount: -535800, duration: 3, note: 'Child2 国立大学(以降)' },
 
-            { Year: 2047, Amount: -2000000, Duration: 1, Name: '大額支出納税', Type: 'expense' },
-            { Year: 2047, Amount: -3000000, Duration: 1, Name: 'Child1 結婚支援', Type: 'expense' },
-            { Year: 2050, Amount: -3000000, Duration: 1, Name: 'Child2 結婚支援', Type: 'expense' },
-            { Year: 2052, Amount: -5000000, Duration: 1, Name: '世界一周旅行', Type: 'expense' },
+            { year: 2047, amount: -2000000, duration: 1, note: '大額支出納税' },
+            { year: 2047, amount: -3000000, duration: 1, note: 'Child1 結婚支援' },
+            { year: 2050, amount: -3000000, duration: 1, note: 'Child2 結婚支援' },
+            { year: 2052, amount: -5000000, duration: 1, note: '世界一周旅行' },
 
-            // Care
-            { Year: 2067, Amount: -3000000, Duration: 8, Name: 'P1 介護費用', Type: 'expense' },
-            { Year: 2069, Amount: -3000000, Duration: 6, Name: 'P2 介護費用', Type: 'expense' },
+            { year: 2067, amount: -3000000, duration: 8, note: 'P1 介護費用' },
+            { year: 2069, amount: -3000000, duration: 6, note: 'P2 介護費用' },
 
-            // Income Boosts/Drops
-            { Year: 2027, Amount: 3000000, Duration: 13, Name: 'P1 中年昇給', Type: 'income' },
-            { Year: 2029, Amount: 2000000, Duration: 11, Name: 'P2 中年昇給', Type: 'income' },
-            { Year: 2042, Amount: -1000000, Duration: 10, Name: 'P1 役職定年減収', Type: 'expense' }, // Reduced income modeled as expense or manual adjustment? Standard is to model as negative income or expense? Logic handles Amount. If negative, it reduces asset.
-            { Year: 2044, Amount: -800000, Duration: 8, Name: 'P2 役職定年減収', Type: 'expense' },
+            { year: 2027, amount: 3000000, duration: 13, note: 'P1 中年昇給' },
+            { year: 2029, amount: 2000000, duration: 11, note: 'P2 中年昇給' },
+            { year: 2042, amount: -1000000, duration: 10, note: 'P1 役職定年減収' },
+            { year: 2044, amount: -800000, duration: 8, note: 'P2 役職定年減収' },
 
-            // House
-            { Year: 2050, Amount: -2000000, Duration: 1, Name: '修繕納税', Type: 'expense' },
-            { Year: 2050, Amount: -10000000, Duration: 1, Name: '大規模修繕1', Type: 'expense' },
-            { Year: 2070, Amount: -10000000, Duration: 1, Name: '大規模修繕2', Type: 'expense' },
+            { year: 2050, amount: -2000000, duration: 1, note: '修繕納税' },
+            { year: 2050, amount: -10000000, duration: 1, note: '大規模修繕1' },
+            { year: 2070, amount: -10000000, duration: 1, note: '大規模修繕2' },
         ]
     },
 
@@ -69,6 +75,25 @@ export const PROFILES = {
         setup: {
             Initial_Asset: 2000000,
             Invest_Return: 0.03,
+            Inflation: 0.02,
+
+            Person1_Birth_Year: 1985,
+            Person1_Salary_Start: 5000000,
+            Person1_Retire_Age: 65,
+            Person1_Pension_Start_Age: 65,
+            Person1_Pension_Income: 1200000,
+            Person1_Medical_Start_Age: 70,
+            Person1_Medical_Annual: -1000000,
+
+            Person2_Birth_Year: 1987,
+            Person2_Salary_Start: 3000000,
+            Person2_Retire_Age: 65,
+            Person2_Pension_Start_Age: 65,
+            Person2_Pension_Income: 1200000,
+            Person2_Medical_Start_Age: 70,
+            Person2_Medical_Annual: -1000000,
+
+            Child1_Birth_Year: 2021,
 
             Housing_Annual_Pre: -600000,
             Housing_Annual_Post: -480000,
@@ -79,36 +104,30 @@ export const PROFILES = {
             Income_Tax_Rate: 0.2,
             Pension_Tax_Rate: 0.1,
             Events_Tax_Rate: 0.2,
-
-            Person1_Salary_Start: 5000000,
-            Person2_Salary_Start: 3000000,
-
-            Pension_Income: 1200000,
-            Medical_Annual: -1000000,
         },
         events: [
-            { Year: 2025, Amount: -1800000, Duration: 30, Name: '住宅ローン', Type: 'expense' },
+            { year: 2025, amount: -1800000, duration: 30, note: '住宅ローン' },
 
-            { Year: 2030, Amount: -400000, Duration: 3, Name: 'Child1 中学補習', Type: 'expense' },
-            { Year: 2033, Amount: -600000, Duration: 3, Name: 'Child1 高校補習', Type: 'expense' },
-            { Year: 2036, Amount: -817800, Duration: 1, Name: 'Child1 国立大学(初年度)', Type: 'expense' },
-            { Year: 2037, Amount: -535800, Duration: 3, Name: 'Child1 国立大学(以降)', Type: 'expense' },
+            { year: 2030, amount: -400000, duration: 3, note: 'Child1 中学補習' },
+            { year: 2033, amount: -600000, duration: 3, note: 'Child1 高校補習' },
+            { year: 2036, amount: -817800, duration: 1, note: 'Child1 国立大学(初年度)' },
+            { year: 2037, amount: -535800, duration: 3, note: 'Child1 国立大学(以降)' },
 
-            { Year: 2034, Amount: -400000, Duration: 3, Name: 'Child2 中学補習', Type: 'expense' },
-            { Year: 2037, Amount: -600000, Duration: 3, Name: 'Child2 高校補習', Type: 'expense' },
-            { Year: 2040, Amount: -1200000, Duration: 1, Name: 'Child2 私立大学(初年度)', Type: 'expense' },
-            { Year: 2041, Amount: -1000000, Duration: 3, Name: 'Child2 私立大学(以降)', Type: 'expense' },
+            { year: 2034, amount: -400000, duration: 3, note: 'Child2 中学補習' },
+            { year: 2037, amount: -600000, duration: 3, note: 'Child2 高校補習' },
+            { year: 2040, amount: -1200000, duration: 1, note: 'Child2 私立大学(初年度)' },
+            { year: 2041, amount: -1000000, duration: 3, note: 'Child2 私立大学(以降)' },
 
-            { Year: 2045, Amount: -2000000, Duration: 1, Name: 'Child1 結婚支援', Type: 'expense' },
-            { Year: 2048, Amount: -2000000, Duration: 1, Name: 'Child2 結婚支援', Type: 'expense' },
+            { year: 2045, amount: -2000000, duration: 1, note: 'Child1 結婚支援' },
+            { year: 2048, amount: -2000000, duration: 1, note: 'Child2 結婚支援' },
 
-            { Year: 2042, Amount: -2000000, Duration: 10, Name: 'P1 役職定年減収', Type: 'expense' },
-            { Year: 2044, Amount: -800000, Duration: 8, Name: 'P2 役職定年減収', Type: 'expense' },
+            { year: 2042, amount: -2000000, duration: 10, note: 'P1 役職定年減収' },
+            { year: 2044, amount: -800000, duration: 8, note: 'P2 役職定年減収' },
 
-            { Year: 2050, Amount: -5000000, Duration: 1, Name: '大規模修繕', Type: 'expense' },
+            { year: 2050, amount: -5000000, duration: 1, note: '大规模修缮' },
 
-            { Year: 2070, Amount: -2000000, Duration: 8, Name: 'P1 介護', Type: 'expense' },
-            { Year: 2072, Amount: -2000000, Duration: 6, Name: 'P2 介護', Type: 'expense' },
+            { year: 2070, amount: -2000000, duration: 8, note: 'P1 护理' },
+            { year: 2072, amount: -2000000, duration: 6, note: 'P2 护理' },
         ]
     },
 
@@ -118,6 +137,25 @@ export const PROFILES = {
         setup: {
             Initial_Asset: 3000000,
             Invest_Return: 0.03,
+            Inflation: 0.02,
+
+            Person1_Birth_Year: 1985,
+            Person1_Salary_Start: 6000000,
+            Person1_Retire_Age: 65,
+            Person1_Pension_Start_Age: 65,
+            Person1_Pension_Income: 1100000,
+            Person1_Medical_Start_Age: 70,
+            Person1_Medical_Annual: -900000,
+
+            Person2_Birth_Year: 1987,
+            Person2_Salary_Start: 1500000,
+            Person2_Retire_Age: 65,
+            Person2_Pension_Start_Age: 65,
+            Person2_Pension_Income: 1100000,
+            Person2_Medical_Start_Age: 70,
+            Person2_Medical_Annual: -900000,
+
+            Child1_Birth_Year: 2021,
 
             Housing_Annual_Pre: -600000,
             Housing_Annual_Post: -480000,
@@ -128,36 +166,31 @@ export const PROFILES = {
             Income_Tax_Rate: 0.2,
             Pension_Tax_Rate: 0.1,
             Events_Tax_Rate: 0.2,
-
-            Person1_Salary_Start: 6000000,
-            Person2_Salary_Start: 1500000, // Part time
-
-            Pension_Income: 1100000,
-            Medical_Annual: -900000,
         },
         events: [
-            { Year: 2025, Amount: -1800000, Duration: 30, Name: '住宅ローン', Type: 'expense' },
+            { year: 2025, amount: -1800000, duration: 30, note: '住宅ローン' },
 
-            { Year: 2030, Amount: -400000, Duration: 3, Name: 'Child1 中学補習', Type: 'expense' },
-            { Year: 2033, Amount: -600000, Duration: 3, Name: 'Child1 高校補習', Type: 'expense' },
-            { Year: 2036, Amount: -1500000, Duration: 1, Name: 'Child1 私立大学(初年度)', Type: 'expense' },
-            { Year: 2037, Amount: -1200000, Duration: 3, Name: 'Child1 私立大学(以降)', Type: 'expense' },
+            { year: 2030, amount: -400000, duration: 3, note: 'Child1 中学補習' },
+            { year: 2033, amount: -600000, duration: 3, note: 'Child1 高校補習' },
+            { year: 2036, amount: -1500000, duration: 1, note: 'Child1 私立大学(初年度)' },
+            { year: 2037, amount: -1200000, duration: 3, note: 'Child1 私立大学(以降)' },
 
-            { Year: 2033, Amount: -400000, Duration: 3, Name: 'Child2 中学補習', Type: 'expense' },
-            { Year: 2036, Amount: -600000, Duration: 3, Name: 'Child2 高校補習', Type: 'expense' },
-            { Year: 2039, Amount: -817800, Duration: 1, Name: 'Child2 公立大学(初年度)', Type: 'expense' },
-            { Year: 2040, Amount: -535800, Duration: 3, Name: 'Child2 公立大学(以降)', Type: 'expense' },
+            { year: 2033, amount: -400000, duration: 3, note: 'Child2 中学補習' },
+            { year: 2036, amount: -600000, duration: 3, note: 'Child2 高校補習' },
+            { year: 2039, amount: -817800, duration: 1, note: 'Child2 公立大学(初年度)' },
+            { year: 2040, amount: -535800, duration: 3, note: 'Child2 公立大学(以降)' },
 
-            { Year: 2045, Amount: -1000000, Duration: 1, Name: 'Child1 結婚支援', Type: 'expense' },
-            { Year: 2048, Amount: -1000000, Duration: 1, Name: 'Child2 結婚支援', Type: 'expense' },
+            { year: 2045, amount: -1000000, duration: 1, note: 'Child1 結婚支援' },
+            { year: 2048, amount: -1000000, duration: 1, note: 'Child2 結婚支援' },
 
-            { Year: 2042, Amount: -1500000, Duration: 10, Name: 'P1 役職定年減収', Type: 'expense' },
-            { Year: 2044, Amount: -500000, Duration: 8, Name: 'P2 役職定年減収', Type: 'expense' },
+            { year: 2042, amount: -1500000, duration: 10, note: 'P1 役職定年減収' },
+            { year: 2044, amount: -500000, duration: 8, note: 'P2 役職定年減収' },
 
-            { Year: 2050, Amount: -5000000, Duration: 1, Name: '大規模修繕', Type: 'expense' },
+            { year: 2050, amount: -5000000, duration: 1, note: '大规模修缮' },
 
-            { Year: 2070, Amount: -2500000, Duration: 8, Name: 'P1 介護', Type: 'expense' },
-            { Year: 2072, Amount: -2500000, Duration: 6, Name: 'P2 介護', Type: 'expense' },
+            { year: 2070, amount: -2500000, duration: 8, note: 'P1 护理' },
+            { year: 2072, amount: -2500000, duration: 6, note: 'P2 护理' },
         ]
     }
 };
+

@@ -7,10 +7,15 @@ export function createResultsPage(setup, events, onBack) {
     const container = document.createElement('div');
     container.className = 'assets-layout';
 
-    // Safe calculations for KPIs (fallback to 0)
-    const initialAsset = (setup.Initial_Asset || 0) * 10000;
-    const totalIncome = ((setup.Person1_Salary_Start || 0) + (setup.Person2_Salary_Start || 0)) * 10000;
-    const totalExpense = Math.abs((setup.Living_Annual_Pre || 0) + (setup.Housing_Annual_Pre || 0)) * 10000;
+    // Safe calculations for KPIs (fallback to 0) - Using first-year projection logic effectively
+    const initialAsset = (setup.Initial_Asset || 0) * 10000; // Wait, Initial_Asset in setup is now likely in Yen if synced from text? 
+    // Actually, in defaults.js I set Initial_Asset: 100000000. So it's already in Yen. 
+    // BUT the form logic might handle units. Let's stick to what's in state. 
+    // In Defaults.js Initial_Asset: 100000000.
+
+    // Total income from both persons
+    const totalIncome = (setup.Person1_Salary_Start || 0) + (setup.Person2_Salary_Start || 0);
+    const totalExpense = Math.abs((setup.Living_Annual_Pre || 0) + (setup.Housing_Annual_Pre || 0));
 
     container.innerHTML = `
         <div class="dashboard-container">

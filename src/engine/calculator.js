@@ -13,24 +13,29 @@
 export function calculateIncome(year, setup, events) {
     let income = 0;
 
-    // 退休前工资收入
-    if (year < setup.Retire_Year) {
+    // 退休前工资收入 (Decoupled)
+    const p1RetireYear = setup.Person1_Birth_Year + setup.Person1_Retire_Age;
+    const p2RetireYear = setup.Person2_Birth_Year + setup.Person2_Retire_Age;
+
+    if (year < p1RetireYear) {
         income += setup.Person1_Salary_Start || 0;
+    }
+    if (year < p2RetireYear) {
         income += setup.Person2_Salary_Start || 0;
     }
 
-    // 养老金收入（达到领取年龄后）
+    // 养老金收入 (Decoupled)
     const person1Age = year - setup.Person1_Birth_Year;
     const person2Age = year - setup.Person2_Birth_Year;
 
-    if (person1Age >= setup.Pension_Start_Age) {
-        income += setup.Pension_Income;
+    if (person1Age >= setup.Person1_Pension_Start_Age) {
+        income += setup.Person1_Pension_Income || 0;
     }
-    if (person2Age >= setup.Pension_Start_Age) {
-        income += setup.Pension_Income;
+    if (person2Age >= setup.Person2_Pension_Start_Age) {
+        income += setup.Person2_Pension_Income || 0;
     }
 
-    // 正向生活事件（遗产继承、卖房、副业等）
+    // 正向生活事件
     for (const event of events) {
         if (event.amount > 0 && year >= event.year && year < event.year + event.duration) {
             income += event.amount;
@@ -40,38 +45,34 @@ export function calculateIncome(year, setup, events) {
     return income;
 }
 
-/**
- * 计算某年的总支出（返回负数表示支出）
- * @param {number} year - 年份
- * @param {object} setup - 家庭基本设置
- * @param {array} events - 生活事件列表
- * @returns {number} 总支出（负数）
- */
 export function calculateExpense(year, setup, events) {
     let expense = 0;
 
-    // 住房和生活支出
-    if (year < setup.Retire_Year) {
-        expense += setup.Housing_Annual_Pre + setup.Living_Annual_Pre;
+    // 住房和生活支出 (Based on oldest person's retirement status? Or average? 
+    // HeHe: Excel used global Retire_Year. Let's use P1's retirement as primary for household transition)
+    const p1RetireYear = setup.Person1_Birth_Year + setup.Person1_Retire_Age;
+
+    if (year < p1RetireYear) {
+        expense += (setup.Housing_Annual_Pre || 0) + (setup.Living_Annual_Pre || 0);
     } else {
-        expense += setup.Housing_Annual_Post + setup.Living_Annual_Post;
+        expense += (setup.Housing_Annual_Post || 0) + (setup.Living_Annual_Post || 0);
     }
 
     // 旅游支出
-    expense += setup.Travel_Annual;
+    expense += setup.Travel_Annual || 0;
 
-    // 医疗支出（70岁后）
+    // 医疗支出 (Decoupled)
     const person1Age = year - setup.Person1_Birth_Year;
     const person2Age = year - setup.Person2_Birth_Year;
 
-    if (person1Age >= setup.Medical_Start_Age) {
-        expense += setup.Medical_Annual;
+    if (person1Age >= setup.Person1_Medical_Start_Age) {
+        expense += setup.Person1_Medical_Annual || 0;
     }
-    if (person2Age >= setup.Medical_Start_Age) {
-        expense += setup.Medical_Annual;
+    if (person2Age >= setup.Person2_Medical_Start_Age) {
+        expense += setup.Person2_Medical_Annual || 0;
     }
 
-    // 负向生活事件（教育、购房等）
+    // 负向生活事件
     for (const event of events) {
         if (event.amount < 0 && year >= event.year && year < event.year + event.duration) {
             expense += event.amount;
@@ -81,34 +82,30 @@ export function calculateExpense(year, setup, events) {
     return expense;
 }
 
-/**
- * 计算某年的税金支出（返回负数）
- * @param {number} year - 年份
- * @param {object} setup - 家庭基本设置
- * @param {array} events - 生活事件列表
- * @returns {number} 税金（负数）
- */
 export function calculateTax(year, setup, events) {
     let tax = 0;
 
-    // 工资所得税
-    if (year < setup.Retire_Year) {
-        const salaryIncome = (setup.Person1_Salary_Start || 0) + (setup.Person2_Salary_Start || 0);
-        tax -= salaryIncome * setup.Income_Tax_Rate;
+    const p1RetireYear = setup.Person1_Birth_Year + setup.Person1_Retire_Age;
+    const p2RetireYear = setup.Person2_Birth_Year + setup.Person2_Retire_Age;
+
+    // 工资所得税 (Individual)
+    if (year < p1RetireYear) {
+        tax -= (setup.Person1_Salary_Start || 0) * setup.Income_Tax_Rate;
+    }
+    if (year < p2RetireYear) {
+        tax -= (setup.Person2_Salary_Start || 0) * setup.Income_Tax_Rate;
     }
 
-    // 养老金税
+    // 养老金税 (Individual)
     const person1Age = year - setup.Person1_Birth_Year;
     const person2Age = year - setup.Person2_Birth_Year;
-    let pensionIncome = 0;
 
-    if (person1Age >= setup.Pension_Start_Age) {
-        pensionIncome += setup.Pension_Income;
+    if (person1Age >= setup.Person1_Pension_Start_Age) {
+        tax -= (setup.Person1_Pension_Income || 0) * (setup.Pension_Tax_Rate || 0);
     }
-    if (person2Age >= setup.Pension_Start_Age) {
-        pensionIncome += setup.Pension_Income;
+    if (person2Age >= setup.Person2_Pension_Start_Age) {
+        tax -= (setup.Person2_Pension_Income || 0) * (setup.Pension_Tax_Rate || 0);
     }
-    tax -= pensionIncome * setup.Pension_Tax_Rate;
 
     // 正向事件课税
     for (const event of events) {
@@ -120,13 +117,6 @@ export function calculateTax(year, setup, events) {
     return tax;
 }
 
-/**
- * 计算某年的净现金流
- * @param {number} year - 年份
- * @param {object} setup - 家庭基本设置
- * @param {array} events - 生活事件列表
- * @returns {number} 净现金流
- */
 export function calculateNetCashFlow(year, setup, events) {
     const income = calculateIncome(year, setup, events);
     const expense = calculateExpense(year, setup, events);

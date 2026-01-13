@@ -37,7 +37,7 @@ export function createProfileSummary(setup) {
         if (val === null || val === undefined || val === '') return;
 
         // Find label
-        const fieldDef = setupFields.find(f => f.key === key);
+        const fieldDef = setupFields.flatMap(g => g.fields).find(f => f.key === key);
         const label = fieldDef ? fieldDef.label : key;
 
         // Format value

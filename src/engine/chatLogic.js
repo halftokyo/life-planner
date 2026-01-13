@@ -175,24 +175,20 @@ export class ChatEngine {
 
         const known = `
 [現在設定] プロファイル: ${profile}
-世帯主: ${s.Person1_Birth_Year}生, ${s.Person1_Salary_Start / 10000}万
-配偶者: ${s.Person2_Birth_Year || '-'}, ${(s.Person2_Salary_Start || 0) / 10000}万
+本人: ${s.Person1_Birth_Year}生, 年収 ${s.Person1_Salary_Start / 10000}万, 退休 ${s.Person1_Retire_Age}歳, 年金 ${s.Person1_Pension_Income / 10000}万
+配偶者: ${s.Person2_Birth_Year || '-'}生, 年収 ${(s.Person2_Salary_Start || 0) / 10000}万, 退休 ${s.Person2_Retire_Age}歳, 年金 ${(s.Person2_Pension_Income || 0) / 10000}万
 資産: ${(s.Initial_Asset || 0) / 10000}万
 `;
 
         if (this.matchedProfile) {
-            // Optimization: Shorter prompt for refinement
             return `あなたはFP AI。現在「${profile}」が適用済。
-ユーザーの修正要望に対応してください。特に要望がなければ「OKならシミュレーションを作成します」と案内して。
+世帯の個別設定（退職年齢や年金など）の修正要望に対応してください。数値は「万円」で。
 ${known}`;
         }
 
-        return `
-あなたはFP AI。
-不足情報: ${missingFields.join(', ')}。
+        return `あなたはFP AI。不足情報: ${missingFields.join(', ')}。
 ${known}
-不足情報を優しく聞いて。数値は「万円」で。
-`;
+不足情報を聞いて。数値は「万円」で。`;
     }
 
     addMessage(type, text) {
@@ -223,10 +219,19 @@ ${known}
             }
         };
 
+        // P1
         extract(/(?:私|本人|夫|旦那|p1).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Person1_Birth_Year', v => v < 100 ? 2025 - v : v);
         extract(/(?:私|本人|夫|旦那|p1|年収|給与).*?(?:年収|給与|手取り).*?(\d[\d,.]*)/i, 'Person1_Salary_Start', v => v < 10000 ? v * 10000 : v);
+        extract(/(?:私|本人|夫|旦那|p1).*?(?:退職|引退|リタイア).*?(\d{1,2})/, 'Person1_Retire_Age');
+        extract(/(?:私|本人|夫|旦那|p1).*?(?:年金|国民年金|厚生年金).*?(\d[\d,.]*)/, 'Person1_Pension_Income', v => v < 10000 ? v * 10000 : v);
+
+        // P2
         extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Person2_Birth_Year', v => v < 100 ? 2025 - v : v);
         extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:年収|給与).*?(\d[\d,.]*)/i, 'Person2_Salary_Start', v => v < 10000 ? v * 10000 : v);
+        extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:退職|引退|リタイア).*?(\d{1,2})/, 'Person2_Retire_Age');
+        extract(/(?:配偶者|妻|嫁|奥さん|パートナー|p2).*?(?:年金|国民年金|厚生年金).*?(\d[\d,.]*)/, 'Person2_Pension_Income', v => v < 10000 ? v * 10000 : v);
+
+        // General
         extract(/(?:子供|子|娘|息子).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Child1_Birth_Year', v => v < 100 ? 2025 - v : v);
         extract(/(?:資産|貯金|貯蓄).*?(\d[\d,.]*)/i, 'Initial_Asset', v => v < 10000 ? v * 10000 : v);
         extract(/(?:住居|家賃|ローン).*?(\d[\d,.]*)/i, 'Housing_Annual_Pre', v => -Math.abs(v < 1000 ? v * 10000 : v));
