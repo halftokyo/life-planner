@@ -1,5 +1,6 @@
 import { formatCurrency } from '../engine/calculator.js';
 import { createChartsContainer, updateCharts } from './Charts.js';
+import { createProjectionTable } from './ProjectionTable.js';
 import { generateProjection } from '../engine/calculator.js';
 
 export function createResultsPage(setup, events, onBack) {
@@ -63,7 +64,14 @@ export function createResultsPage(setup, events, onBack) {
     setTimeout(() => {
         const projection = generateProjection(setup, events);
         updateCharts(projection, setup);
+
+        // Render Table
+        const tableWrapper = container.querySelector('#data-table-wrapper');
+        const table = createProjectionTable(projection);
+        tableWrapper.innerHTML = ''; // clear loading state if any
+        tableWrapper.appendChild(table);
     }, 0);
+
 
     return container;
 }

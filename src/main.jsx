@@ -156,8 +156,12 @@ function renderInputTab(container, preSelectedProfileId) {
                 saveState();
             },
             (profileId) => {
+                console.log('Profile Selected:', profileId);
                 if (chatHandle && chatHandle.engine) {
+                    console.log('Applying via Engine...');
                     chatHandle.engine.applyProfile(profileId);
+                } else {
+                    console.error('ChatHandle or Engine not found!', chatHandle);
                 }
             }
         );
@@ -166,6 +170,7 @@ function renderInputTab(container, preSelectedProfileId) {
     updateForm();
 
     // Init Chat Sidebar
+    console.log('Initializing Chat Interface...');
     chatHandle = createChatInterface(
         (key, value) => {
             // Apply updates from AI

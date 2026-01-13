@@ -149,6 +149,8 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
+  /* Important for nested scrolling */
 }
 
 /* Left Sidebar: AI Chat */
@@ -560,38 +562,39 @@ tr:hover td {
     flex-direction: column;
   }
 }
+
 /* Role Selection Buttons */
 .role-btn {
-    background: white;
-    border: 1px solid #efefef;
-    border-radius: 12px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  background: white;
+  border: 1px solid #efefef;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .role-btn:hover {
-    border-color: #1a1a1a;
-    background: #fcfcfc;
-    transform: translateY(-1px);
+  border-color: #1a1a1a;
+  background: #fcfcfc;
+  transform: translateY(-1px);
 }
 
 .role-id {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .role-name {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #1e293b;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
 }
