@@ -13,7 +13,7 @@ export const PROFILES = {
             Person1_Pension_Start_Age: 65,
             Person1_Pension_Income: 2000000,
             Person1_Medical_Start_Age: 70,
-            Person1_Medical_Annual: -840000,
+            Person1_Medical_Annual: 840000,
 
             Person2_Birth_Year: 1987,
             Person2_Salary_Start: 5500000,
@@ -21,15 +21,18 @@ export const PROFILES = {
             Person2_Pension_Start_Age: 65,
             Person2_Pension_Income: 2000000,
             Person2_Medical_Start_Age: 70,
-            Person2_Medical_Annual: -840000,
+            Person2_Medical_Annual: 840000,
+
+            Person2_Medical_Start_Age: 70,
+            Person2_Medical_Annual: 840000,
 
             Child1_Birth_Year: 2021,
 
-            Housing_Annual_Pre: -600000,
-            Housing_Annual_Post: -480000,
-            Living_Annual_Pre: -4200000,
-            Living_Annual_Post: -3600000,
-            Travel_Annual: -1000000,
+            Housing_Annual_Pre: 600000,
+            Housing_Annual_Post: 480000,
+            Living_Annual_Pre: 4200000,
+            Living_Annual_Post: 3600000,
+            Travel_Annual: 1000000,
 
             Income_Tax_Rate: 0.25,
             Pension_Tax_Rate: 0.15,
@@ -83,7 +86,7 @@ export const PROFILES = {
             Person1_Pension_Start_Age: 65,
             Person1_Pension_Income: 1200000,
             Person1_Medical_Start_Age: 70,
-            Person1_Medical_Annual: -1000000,
+            Person1_Medical_Annual: 1000000,
 
             Person2_Birth_Year: 1987,
             Person2_Salary_Start: 3000000,
@@ -91,15 +94,15 @@ export const PROFILES = {
             Person2_Pension_Start_Age: 65,
             Person2_Pension_Income: 1200000,
             Person2_Medical_Start_Age: 70,
-            Person2_Medical_Annual: -1000000,
+            Person2_Medical_Annual: 1000000,
 
             Child1_Birth_Year: 2021,
 
-            Housing_Annual_Pre: -600000,
-            Housing_Annual_Post: -480000,
-            Living_Annual_Pre: -4500000,
-            Living_Annual_Post: -3600000,
-            Travel_Annual: -600000,
+            Housing_Annual_Pre: 600000,
+            Housing_Annual_Post: 480000,
+            Living_Annual_Pre: 4500000,
+            Living_Annual_Post: 3600000,
+            Travel_Annual: 600000,
 
             Income_Tax_Rate: 0.2,
             Pension_Tax_Rate: 0.1,
@@ -145,7 +148,7 @@ export const PROFILES = {
             Person1_Pension_Start_Age: 65,
             Person1_Pension_Income: 1100000,
             Person1_Medical_Start_Age: 70,
-            Person1_Medical_Annual: -900000,
+            Person1_Medical_Annual: 900000,
 
             Person2_Birth_Year: 1987,
             Person2_Salary_Start: 1500000,
@@ -153,15 +156,15 @@ export const PROFILES = {
             Person2_Pension_Start_Age: 65,
             Person2_Pension_Income: 1100000,
             Person2_Medical_Start_Age: 70,
-            Person2_Medical_Annual: -900000,
+            Person2_Medical_Annual: 900000,
 
             Child1_Birth_Year: 2021,
 
-            Housing_Annual_Pre: -600000,
-            Housing_Annual_Post: -480000,
-            Living_Annual_Pre: -4000000,
-            Living_Annual_Post: -3000000,
-            Travel_Annual: -200000,
+            Housing_Annual_Pre: 600000,
+            Housing_Annual_Post: 480000,
+            Living_Annual_Pre: 4000000,
+            Living_Annual_Post: 3000000,
+            Travel_Annual: 200000,
 
             Income_Tax_Rate: 0.2,
             Pension_Tax_Rate: 0.1,

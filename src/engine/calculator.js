@@ -72,10 +72,10 @@ export function calculateExpense(year, setup, events) {
         expense += setup.Person2_Medical_Annual || 0;
     }
 
-    // 负向生活事件
+    // 负向生活事件 (Events are still stored as negative values, so we convert to positive expense)
     for (const event of events) {
         if (event.amount < 0 && year >= event.year && year < event.year + event.duration) {
-            expense += event.amount;
+            expense += Math.abs(event.amount);
         }
     }
 
@@ -122,7 +122,8 @@ export function calculateNetCashFlow(year, setup, events) {
     const expense = calculateExpense(year, setup, events);
     const tax = calculateTax(year, setup, events);
 
-    return income + expense + tax;
+    // Income is (+), Expense is (+ magnitude), Tax is (-)
+    return income - expense + tax;
 }
 
 /**

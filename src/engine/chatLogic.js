@@ -234,8 +234,8 @@ ${known}
         // General
         extract(/(?:子供|子|娘|息子).*?(?:生年|生まれ|birth|歳|才).*?(\d{2,4})/i, 'Child1_Birth_Year', v => v < 100 ? 2025 - v : v);
         extract(/(?:資産|貯金|貯蓄).*?(\d[\d,.]*)/i, 'Initial_Asset', v => v < 10000 ? v * 10000 : v);
-        extract(/(?:住居|家賃|ローン).*?(\d[\d,.]*)/i, 'Housing_Annual_Pre', v => -Math.abs(v < 1000 ? v * 10000 : v));
-        extract(/(?:生活|食費|光熱).*?(\d[\d,.]*)/i, 'Living_Annual_Pre', v => -Math.abs(v < 1000 ? v * 10000 : v));
+        extract(/(?:住居|家賃|ローン).*?(\d[\d,.]*)/i, 'Housing_Annual_Pre', v => Math.abs(v < 1000 ? v * 10000 : v));
+        extract(/(?:生活|食費|光熱).*?(\d[\d,.]*)/i, 'Living_Annual_Pre', v => Math.abs(v < 1000 ? v * 10000 : v));
 
         return count;
     }

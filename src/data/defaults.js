@@ -14,7 +14,7 @@ export const defaultSetup = {
     Person1_Pension_Start_Age: 65,
     Person1_Pension_Income: 2000000,
     Person1_Medical_Start_Age: 70,
-    Person1_Medical_Annual: -960000,
+    Person1_Medical_Annual: 960000,
 
     // 家庭成员信息 - 配偶 (Person 2)
     Person2_Birth_Year: 1986,
@@ -23,19 +23,19 @@ export const defaultSetup = {
     Person2_Pension_Start_Age: 65,
     Person2_Pension_Income: 2000000,
     Person2_Medical_Start_Age: 70,
-    Person2_Medical_Annual: -960000,
+    Person2_Medical_Annual: 960000,
 
     // 其他孩子信息
     Child1_Birth_Year: 2019,
 
     // 住房支出
-    Housing_Annual_Pre: -3600000,
+    Housing_Annual_Pre: 3600000,
     Housing_Annual_Post: 0,
 
     // 生活支出
-    Living_Annual_Pre: -4440000,
-    Living_Annual_Post: -3600000,
-    Travel_Annual: -960000,
+    Living_Annual_Pre: 4440000,
+    Living_Annual_Post: 3600000,
+    Travel_Annual: 960000,
 
     // 税率
     Income_Tax_Rate: 0.30,
