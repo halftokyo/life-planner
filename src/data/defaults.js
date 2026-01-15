@@ -43,62 +43,57 @@ export const defaultSetup = {
     Events_Tax_Rate: 0.30,
 };
 
-// 设置项的元数据（用于生成表单）
 export const setupFields = [
     {
-        group: '基本設定', fields: [
-            { key: 'Start_Year', label: '起始年份', type: 'number', unit: '年' },
-            { key: 'Years', label: '予測年数', type: 'number', unit: '年' },
-            { key: 'Initial_Asset', label: '起始純資産', type: 'currency' },
-            { key: 'Invest_Return', label: '投資年回報率', type: 'percent' },
-            { key: 'Inflation', label: '年通貨膨張率', type: 'percent' },
+        group: 'Basic Config', fields: [
+            { key: 'Start_Year', label: 'Start Year', type: 'number', unit: '' },
+            { key: 'Years', label: 'Duration', type: 'number', unit: 'Years' },
+            { key: 'Initial_Asset', label: 'Initial Assets', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Invest_Return', label: 'Inv. Return', type: 'percent' },
+            { key: 'Inflation', label: 'Inflation', type: 'percent' },
         ]
     },
     {
-        group: '家族情報 - 本人', fields: [
-            { key: 'Person1_Birth_Year', label: '生年', type: 'number', unit: '年' },
-            { key: 'Person1_Salary_Start', label: '年収', type: 'currency' },
-            { key: 'Person1_Retire_Age', label: '退職年齢', type: 'number', unit: '歳' },
-            { key: 'Person1_Pension_Start_Age', label: '年金開始年齢', type: 'number', unit: '歳' },
-            { key: 'Person1_Pension_Income', label: '年金収入（年間）', type: 'currency' },
-            { key: 'Person1_Medical_Start_Age', label: '医療費開始年齢', type: 'number', unit: '歳' },
-            { key: 'Person1_Medical_Annual', label: '年間医療費', type: 'currency' },
+        group: 'Husband / Main', fields: [
+            { key: 'Person1_Birth_Year', label: 'Birth Year', type: 'number', unit: '' },
+            { key: 'Person1_Salary_Start', label: 'Current Salary', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Person1_Retire_Age', label: 'Retire Age', type: 'number', unit: 'Age' },
+            { key: 'Person1_Pension_Start_Age', label: 'Pension Start', type: 'number', unit: 'Age' },
+            { key: 'Person1_Pension_Income', label: 'Pension Amt', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Person1_Medical_Start_Age', label: 'Med. Start', type: 'number', unit: 'Age' },
+            { key: 'Person1_Medical_Annual', label: 'Med. Cost', type: 'currency', scale: 10000, suffix: '万' },
         ]
     },
     {
-        group: '家族情報 - 配偶者', fields: [
-            { key: 'Person2_Birth_Year', label: '生年', type: 'number', unit: '年' },
-            { key: 'Person2_Salary_Start', label: '年収', type: 'currency' },
-            { key: 'Person2_Retire_Age', label: '退職年齢', type: 'number', unit: '歳' },
-            { key: 'Person2_Pension_Start_Age', label: '年金開始年齢', type: 'number', unit: '歳' },
-            { key: 'Person2_Pension_Income', label: '年金収入（年間）', type: 'currency' },
-            { key: 'Person2_Medical_Start_Age', label: '医療費開始年齢', type: 'number', unit: '歳' },
-            { key: 'Person2_Medical_Annual', label: '年間医療費', type: 'currency' },
+        group: 'Wife / Partner', fields: [
+            { key: 'Person2_Birth_Year', label: 'Birth Year', type: 'number', unit: '' },
+            { key: 'Person2_Salary_Start', label: 'Current Salary', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Person2_Retire_Age', label: 'Retire Age', type: 'number', unit: 'Age' },
+            { key: 'Person2_Pension_Start_Age', label: 'Pension Start', type: 'number', unit: 'Age' },
+            { key: 'Person2_Pension_Income', label: 'Pension Amt', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Person2_Medical_Start_Age', label: 'Med. Start', type: 'number', unit: 'Age' },
+            { key: 'Person2_Medical_Annual', label: 'Med. Cost', type: 'currency', scale: 10000, suffix: '万' },
         ]
     },
     {
-        group: '住居費', fields: [
-            { key: 'Housing_Annual_Pre', label: '退職前（年間）', type: 'currency' },
-            { key: 'Housing_Annual_Post', label: '退職後（年間）', type: 'currency' },
+        group: 'Expenses (Annual)', fields: [
+            { key: 'Housing_Annual_Pre', label: 'Housing (Pre-Retire)', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Housing_Annual_Post', label: 'Housing (Post-Retire)', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Living_Annual_Pre', label: 'Living (Pre-Retire)', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Living_Annual_Post', label: 'Living (Post-Retire)', type: 'currency', scale: 10000, suffix: '万' },
+            { key: 'Travel_Annual', label: 'Travel / Leisure', type: 'currency', scale: 10000, suffix: '万' },
         ]
     },
     {
-        group: '生活費', fields: [
-            { key: 'Living_Annual_Pre', label: '退職前（年間）', type: 'currency' },
-            { key: 'Living_Annual_Post', label: '退職後（年間）', type: 'currency' },
-            { key: 'Travel_Annual', label: '旅行費（年間）', type: 'currency' },
+        group: 'Taxes', fields: [
+            { key: 'Income_Tax_Rate', label: 'Income Tax', type: 'percent' },
+            { key: 'Pension_Tax_Rate', label: 'Pension Tax', type: 'percent' },
+            { key: 'Events_Tax_Rate', label: 'Other Tax', type: 'percent' },
         ]
     },
     {
-        group: '税率', fields: [
-            { key: 'Income_Tax_Rate', label: '給与所得税率', type: 'percent' },
-            { key: 'Pension_Tax_Rate', label: '年金税率', type: 'percent' },
-            { key: 'Events_Tax_Rate', label: 'イベント課税率', type: 'percent' },
-        ]
-    },
-    {
-        group: '家族情報 - 子供', fields: [
-            { key: 'Child1_Birth_Year', label: '生年', type: 'number', unit: '年' },
+        group: 'Children', fields: [
+            { key: 'Child1_Birth_Year', label: 'Child 1 Birth', type: 'number', unit: '' },
         ]
     },
 ];

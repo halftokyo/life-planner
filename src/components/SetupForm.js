@@ -64,22 +64,63 @@ export function createSetupForm(state, onUpdate, onProfileSelect) {
             label.className = 'input-label';
             label.textContent = field.label;
 
+            const inputWrapper = document.createElement('div');
+            inputWrapper.style.position = 'relative';
+            inputWrapper.style.display = 'flex';
+            inputWrapper.style.alignItems = 'center';
+
             const input = document.createElement('input');
-            input.type = field.type === 'currency' ? 'text' : field.type;
+            input.type = field.type === 'currency' || field.type === 'number' || field.type === 'percent' ? 'text' : field.type;
             input.className = 'input-field-clean';
-            input.value = state.setup[field.key];
+
+            // Display Logic: Apply Scale
+            let displayVal = state.setup[field.key];
+            if (field.scale && !isNaN(displayVal)) {
+                displayVal = displayVal / field.scale;
+            }
+            input.value = displayVal;
+
+            if (field.suffix) {
+                const suffix = document.createElement('span');
+                suffix.textContent = field.suffix;
+                suffix.style.position = 'absolute';
+                suffix.style.right = '0';
+                suffix.style.fontSize = '0.8rem';
+                suffix.style.color = '#94a3b8';
+                suffix.style.pointerEvents = 'none';
+                inputWrapper.appendChild(suffix);
+                input.style.paddingRight = '24px'; // Make room for suffix
+            } else if (field.unit) {
+                const suffix = document.createElement('span');
+                suffix.textContent = field.unit;
+                suffix.style.position = 'absolute';
+                suffix.style.right = '0';
+                suffix.style.fontSize = '0.8rem';
+                suffix.style.color = '#94a3b8';
+                suffix.style.pointerEvents = 'none';
+                inputWrapper.appendChild(suffix);
+                input.style.paddingRight = '24px';
+            }
+
+            inputWrapper.appendChild(input);
 
             // Sync logic
             input.addEventListener('change', () => {
                 let val = input.value;
                 if (field.type === 'number' || field.type === 'currency' || field.type === 'percent') {
+                    // Remove non-numeric except dot and minus
                     val = parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+
+                    // Save Logic: Apply Scale Back
+                    if (field.scale) {
+                        val = val * field.scale;
+                    }
                 }
                 onUpdate(field.key, val);
             });
 
             block.appendChild(label);
-            block.appendChild(input);
+            block.appendChild(inputWrapper);
             grid.appendChild(block);
         });
 
